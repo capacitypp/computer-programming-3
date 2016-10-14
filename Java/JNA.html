@@ -1,0 +1,94 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>ネイティブコードへのアクセス</title>
+<link rel="stylesheet" href="common.css" type="text/css" />
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+<div id="main">
+
+<h1>ネイティブコードへのアクセス</h1>
+
+<h2>JNA によるＣ言語との連携</h2>
+<p>JNA (Java Native Access)とは、Java からＣ言語／Ｃ＋＋のネイティブライブラリAPIを呼び出す仕組みであり、JNI（Java Naitive Interafce）と呼ばれる
+技術に基づいて実装されている。JNA は JNI で必要とされた煩雑な技術を簡素化し、より使い易くしたものと位置づけられ、以下の機能を有する。</p>
+<ul>
+<li>ネイティブライブラリのマッピング</li>
+<li>ネイティブメソッド（API）のマッピング</li>
+<li>データのマーシャリング（各プログラミング言語のネイティブなデータ表現を共通データ形式に変換する処理）</li>
+</ul>
+<p class="Caution">JNA を利用するには、jna.jar パッケージを用いるだけで良い。</p>
+
+<p>ここでは簡単な例として、Ｃ言語の標準ライブラリである printf 関数を呼び出す例を示す。</p>
+
+<u>Ｃ言語の printf 関数を呼び出す例</u>
+<pre class="SourceCode">
+import com.sun.jna.Library;
+import com.sun.jna.Native;
+ 
+public class HelloWorld {
+	public interface CLibrary extends Library {
+		// Windows のネイティブライブラリ msvcrt.dll を読み込む
+		CLibrary INSTANCE = (CLibrary) Native.loadLibrary("msvcrt" , CLibrary.class);
+		// 呼び出すネイティブ API の Java メソッドを宣言（メソッド名とシグネチャは、ネイティブAPIと一致させる）
+		void printf(String format, Object... args);
+	}
+
+	public static void main(String[] args) {
+		CLibrary.INSTANCE.printf("Hello, World\n");
+	}
+}
+</pre>
+<p>自作したネイティブライブラリを読み込む際には、msvcrt の部分にそのライブラリ名を記述する。ただし、
+<b class="innerCaution">Mac OS の開発環境では、動的ライブラリ .dylib </b>を使用する。</p>
+<p>
+<a href="http://www.atmarkit.co.jp/fjava/special/jna/jna_2.html">＜＜JNA を利用する基本的な流れへのリンク＞＞</a><br />
+<a href="http://www.atmarkit.co.jp/fjava/special/jna/jna_3.html">＜＜構造体型、配列型のマッピングへのリンク＞＞</a>
+</p>
+
+<div id="Exercise" class="Exercise">
+<h4>課題７．JNAを用いたＣ言語連携</h4>
+<p>
+ALGLIB（Ｃ＋＋）の呼び出しによるデータの判別分析</p>
+</div>
+
+<br /><br />
+<h1 id="Final">最後に：Web アプリケーション開発者を目指す人に</h1>
+<p>Java は Web アプリケーションを開発するために考案された言語であるが、その効率的な開発やテストのための種々のツールが提供されている。
+将来、Web 関連のシステム開発者を目指す人は、以下の様な関連技術の独習を勧める。</p>
+<h3>Struts</h3>
+<p>
+Java を用いて Web アプリケーションを開発する際に用いられる基盤（フレームワーク）であり、MVC（Model, View, Controller）と呼ばれるソフトウェア設計モデルに
+基づいた、サーブレットや JSP を組み合わせた以下の諸機能を提供する：</p>
+<ul>
+<li>リクエストを適切なクラスに割り振るコントローラサーブレット</li>
+<li>JSP で利用するタグライブラリ</li>
+<li>JavaBeans プロパティの自動設定機能</li>
+<li>表示の国際化の支援</li>
+</ul>
+<p>
+Struts は Apache Software License というライセンス規約に基づいて公開されており、誰でも自由かつ無償で利用・改変・再配布ができる。</p>
+<p><a href="http://www.javaroad.jp/opensource/js_struts2.htm">＜＜Struts の概要へのリンク＞＞</a></p>
+
+<h3>JUnit</h3>
+<p>JUnitとは、eXtreme Programming（XP）の起案者であるケント・ベックにより開発された単体テスト向けのフレームワークであり、テスト処理のための便利なメソッドと管理機能が用意されている。</p>
+<p>
+JUnit により正確・効率的なテスト工程が実現でき、プログラムの仕様変更に対しても、JUnit でのテストにより変更の適切性や他のプログラムへの影響を確認できる。また、テスト仕様を JUnit で統一すれば、他の開発者との意思疎通もスムーズに行える。</p>
+<p>JUnit は単体での利用もできるが、Eclipse や NetBeans 等の統合開発環境(IDE)との連携もできる。</p>
+
+<p><a href="http://www.javaroad.jp/opensource/js_junit2.htm">＜＜JUnit の概要へのリンク＞＞</a></p>
+
+<h3>スクリプト言語との連携</h3>
+<p>Java はコンパイル言語であり、型を厳密に定義する静的片付け言語であり曖昧性を除去することでバグを生じ難くしている。一方、スクリプト言語と呼ばれる Ruby や JavaScript 等は、コンパイルの不要な動的型付け言語であり、型の宣言が少ない簡潔な記述が可能になる。これら両者の良い点を同時に活かすために、Java 仮想マシン（JVM）上でスクリプト言語を動作させるインタプリタが開発されている。その代表的なものに、Ruby、Python、および JavaScript を動かすための、JRuby、Jython、および　Rhino が存在する。</p>
+<ul>
+<li><a href="http://codezine.jp/article/detail/1647?p=1">JRubyチュートリアル</a></li>
+<li><a href="http://codezine.jp/article/detail/1714">Java meets Python</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Rhino_documentation">Rhino documentation（英語）</a></li>
+</ul>
+
+</div>
+</body>
+</html>

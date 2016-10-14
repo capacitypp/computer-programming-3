@@ -1,0 +1,623 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Class Definition</title>
+<link rel="stylesheet" href="common.css" type="text/css" />
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+<div id="main">
+<h1>Firdt step for constructing a class</h1>
+<p>
+Java class shares many properties to the class of C++, but their descriptions and functions are slightly different. The representative differences are listed as:
+</p>
+<ul class="Point">
+<li>A single file (.java) is used for defining a class (no separation into header and source files).</li>
+<li>Every class inherits some class, except that a "Object" class.</li>
+<ul>
+<li>Object class is a root class; the most fundamental class definition.</li>
+<li>Object class is automatically inherit when no super (basic) class is given.</li>
+</ul>
+<li>Every function is implemented as a class method, which is defined inside the class.</li>
+<ul>
+<li>A main function is implemented as a static method inside a class.</li>
+</ul>
+</ul>
+
+<h3>Class definition for computing the perimeter and area of the rectangle whose width and height are given via the input of keyboard.</h3>
+<p>
+The below sample code shows the class that has only methods (member function in C++) and no fields (member varable in C++)
+</p>
+<u>Rectangle.java</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+import java.util.Scanner;
+
+public class Rectangle {
+  public int outerLength(int v, int h) { // return the value of perimeter
+    int outerLength = (v * 2) + (h * 2);
+    return outerLength;
+  }
+
+  public int area(int v, int h) { // return the value of area
+    int area = v * h;
+    return area;
+  }
+  
+  public static void main(String[] args) { // for testing
+    Scanner scanner = new Scanner(System.in);
+
+    System.out.print("Height of rectangle ->");
+    String heightString = scanner.nextLine();
+    int height = Integer.valueOf(heightString);
+
+    System.out.print("Width of rectangle ->");
+    String widthString = scanner.nextLine();
+    int width = Integer.valueOf(widthString);
+
+    Rectangle rect = new Rectangle (); // instantiate the class 
+    System.out.println("Perimeter = " + rect.outerLength(height, width));
+    System.out.println("Area = " + rect.area(height, width));
+  }  
+}
+</pre>
+<p class="Caution">Normal method is called by &lt; InstanceName.MethodName &gt;
+(e.g. scanner.nextLine()). If the method is declared as a static method, it is called by
+&lt; ClassName.MethodName &gt; (e.g. Integer.valueOf()).<br />
+
+System.out.println calls a normal method "println" of the static field "out" declared in a "System" class.
+</p>
+
+<p>
+The above sample code implements the methods for computing the perimeter and area as features of a rectangle inside the "Rectangle" class. <br>
+The next sample code <b class="innerCaution">declares the fields of width and height of the rectangle</b> for the above Rectangle class, which are used in the methods (outerLength and area) of the same class.
+</p>
+
+<u>Extension with fields (member variables)</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+import java.util.Scanner;
+
+public class Rectangle {
+  <b class="innerCaution">public int height;</b> // the field of height
+  <b class="innerCaution">public int width;</b> // the field of width
+
+  public int outerLength() { // 周囲長の値を返す
+    int outerLength = (<b class="innerCaution">height</b> * 2) + (<b class="innerCaution">width</b> * 2);
+    return outerLength;
+  }
+
+  public int area() { // 面積の値を返す
+    int area = <b class="innerCaution">height</b> * <b class="innerCaution">width</b>;
+    return area;
+  }
+  
+  public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in);
+
+    Rectangle rect = new Rectangle (); // クラスの実体を生成 
+    System.out.print("縦の長さ: ");
+    String heightString = scanner.nextLine();
+    <b class="innerCaution">rect.height</b> = Integer.valueOf(heightString);
+
+    System.out.print("横の長さ: ");
+    String widthString = scanner.nextLine();
+    <b class="innerCaution">rect.width</b> = Integer.valueOf(widthString);
+
+    System.out.println("外周の長さ: " + <b class="innerCaution">rect.outerLength()</b>);
+    System.out.println("面積: " + <b class="innerCaution">rect.area()</b>);
+  }
+}
+</pre>
+
+<h3>フィールド（メンバ変数）のプライベート（隠蔽）化</h3>
+<p>上記の例では、フィールドの verticalLength と horizontalLength は共に公開 (public) されており、他のクラスから自由に値を読み書きできる。ここでは、これらを隠蔽（private 化）して、その代わりに値を読み書きするためのメソッド（その種別は setter, getter と呼ばれる）を導入する。</p>
+
+<u>フィールドのプライベート化と読み書き用メソッドの導入</u> <!-- 実行確認済み -->
+<pre class="SourceCode">
+public class Rectangle {
+  <b class="innerCaution">private</b> int verticalLength;
+  <b class="innerCaution">private</b> int horizontalLength;
+
+  public void setVeticalLength (int vl) { verticalLength = vl; }
+  public void setHorizontalLength (int hl) { horizontalLength = hl; }
+  public int getVeticalLength () { return verticalLength; }
+  public int getHorizontalLength () { return horizontalLength; }
+  
+  // 以下、outerLength, area, main は同様
+}
+</pre>
+<p>各フィールドに対して値を書き込むメソッド（setter と呼ばれ、set で始まる名前が付けられる）と値を読み出すメッソド（getter と呼ばれ、get で始まる名前が付けられる）を用意するのは一見無駄な様にも思えるが、値の範囲を指定したり、値が代入されていない場合に警告を与えられるので、プログラムのエラー状態を監視しやすくなりバグが見つけやすくなる（これらの、private 宣言されたフィールドを読み書きするメソッドは「<b class="innerCaution">アクセサメソッド</b>」とも呼ばれる）。</p>
+<p>アクセサメソッドに対して、実際にエラーチェック機能を実装した例を以下に示す。</p>
+
+<u>値の読み書きの際のエラーチェックを加えた拡張例</u>
+<!-- 実行確認済み -->
+<pre class="SourceCode">
+public class Rectangle {
+  private int verticalLength = 0; // 値を０で初期化
+  private int horizontalLength = 0; // 値を０で初期化
+
+  public <b class="innerCaution">boolean</b> setVeticalLength (int vl) { 
+  	if (vl <= 0) {
+      System.err.println ("横の長さは正の値を入力して下さい！");
+      return true;
+    }
+    else {
+      verticalLength = vl;
+      return false;
+    }
+  }
+  public <b class="innerCaution">boolean</b> setHorizontalLength (int hl) {
+    if (hl <= 0) {
+      System.err.println ("縦の長さは正の値を入力して下さい！");
+      return true;
+    }
+    else {
+      horizontalLength = hl; 
+      return false;
+    }
+  }
+  public int getVeticalLength () {
+    if (verticalLength == 0)
+      System.err.println ("横の長さの値が入力されていません！");
+    return verticalLength;
+  }
+  public int getHorizontalLength (int vl) { 
+  if (horizontalLength == 0)
+      System.err.println ("縦の長さの値が入力されていません！");
+    return horizontalLength; 
+  }
+  
+  // 以下、outerLength, area, main は同様
+}
+</pre>
+
+<p>上記の拡張では、不正な値（０以下の値）が書き込まれた場合にはフィールドに値を代入せずに真偽（boolean）の値を返すように実装されているが、次のセクションの「例外処理」で紹介される try 〜 catch の処理で扱える様に、何らかの値が throw される場合が多い。</p>
+<div class="innerCaution"><a href="http://www.javaroad.jp/java_class7.htm">＜＜クラス、フィールド、およびメソッドに対するアクセス修飾子（public, private 等）の設定に関してはこちらを参照＞＞</a>
+</div>
+<br/>
+<h4>フィルドを隠蔽し、アクセサメソッドを導入する利点：</h4>
+<ul class="Point">
+<li>代入の際に不正な値をチェックできる</li>
+<li>代入可能で参照不可の、または参照可能で代入不可のフィールドを作れる</li>
+</ul>
+
+<!--<div id="Exercise" class="Exercise">
+<h4>課題１．クラスの作成</h4>
+<p>
+円のクラス Circle を設計せよ。ただし、半径の値をフィールドとし、周囲長と面積を計算するメソッドを実装する。また、PI は 3.1415 とするか、java.lang.Math.PI を使用する。さらに、半径の値は実行時にキーボードで入力する様に作成する。
+</p>
+</div>
+ -->
+
+<h1>継承と多態性の基礎概念</h1>
+<p>継承とは、既存のクラス定義を再利用してクラスを新たに作成する方法である。</p>
+<p>多態性（ポリモーフィズム）とは、同じメッセージを送っても受け取るオブジェクトに依って異なる動作をさせる機構である。</p>
+
+<p class="Point">継承と多態性の目的は、<br/>
+「既存のライブラリを利用する際に、その機能拡張はクラスの継承のみで実現し、既存クラスのコードは一切変更しない」<br />
+という設計原理を導入する事にある。</p>
+
+<!-- img src="image/OOA2.gif" width="800"/>
+<p>　　　　　　　　　　　　　　　　　　　　　<b>継承と多態性の例</b></p -->
+<h3>継承</h3>
+<ul>
+<li>普通預金のクラスを作成する際に、既に存在する銀行預金クラスをを再利用して、その内容をそのまま使用する</li>
+<li>銀行預金クラスの属性と操作を全て継承する</li>
+<ul>
+<li>属性：口座番号、預金者名、預金残高</li>
+<li>操作：講座を開設する、入金する、残高照会をする</li>
+</ul>
+<li>独自の部分だけを追加定義する（差分プログラミング）</li>
+</ul>
+
+<h3>多態性</h3>
+<ul>
+<li>同じ名前のメソッドでも、受け手のオブジェクトにより適切な計算方法が異なる：適切な方法は受け手が知っているので、任せてしまう</li>
+<li>動作の違いを受け手のオブジェクトで吸収するので、メッセージの送り手は単に「利息計算」とだけ依頼する</li>
+<li>ポリモーフィズム（多態性）により、メッセージ送り手のプログラムが単純化でき、送り手のプログラムに影響を与えずに受けてのプログラムを変更できる</li>
+</ul>
+<h1>継承とインタフェース</h1>
+<p>Ｃ＋＋では、実体の無い仮想関数で構成されるクラスは抽象クラスとして扱われるが、Java では修飾子 abstract を用いて抽象クラスを明示的に宣言する。また、Ｃ＋＋では可能な多重継承が許されていない（すなわち、複数のスーパークラスを持てない）ので、その代わりに機能的な共通部分（メソッド）を継承するためのインタフェースクラスを用いる。</p>
+<h2>３種類のクラス</h2>
+<p>Java のクラスは以下の３種類に分類される：</p>
+<table width="750" border="1">
+  <tr>
+    <th width="360">&nbsp;</th>
+    <td width="130"><div align="center"><b>(普通の)クラス</b></div></td>
+    <td width="130"><div align="center"><b>抽象クラス</b></div></td>
+    <td width="130"><div align="center"><b>インタフェース</b></div></td>
+  </tr>
+  <tr>
+    <th>オブジェクトを型によって分類する</th>
+    <td><div align="center">◯</div></td>
+    <td><div align="center">△</div></td>
+    <td><div align="center">◯</div></td>
+  </tr>
+  <tr>
+    <th>オブジェクトの構造と実装を提供する</th>
+    <td><div align="center">◯（全部）</div></td>
+    <td><div align="center">◯（一部）</div></td>
+    <td><div align="center">×</div></td>
+  </tr>
+  <tr>
+    <th>クラスのインスタンスを生成する</th>
+    <td><div align="center">◯</div></td>
+    <td><div align="center">×</div></td>
+    <td><div align="center">×</div></td>
+  </tr>
+  <tr>
+    <th scope="row">抽象度</th>
+    <td><div align="center">低い</div></td>
+    <td><div align="center">中程度</div></td>
+    <td><div align="center">高い</div></td>
+  </tr>
+</table>
+
+<ul class="Point">
+<li>抽象的なクラスはインスタンスを生成できない</li>
+<li>インタフェースはオブジェクトが外部のオブジェクトに提供すべきメソッドの「外見」または「接触面」を規程する</li>
+<ul>
+<li>インスタンスのフィールド（メンバ変数）を持たない</li>
+<li>実体のあるメソッドを持たない（メソッドの枠組みのみを定義する）</li>
+</ul>
+<li>抽象クラスは普通のクラスに継承されて実体（インスタンス）化される</li>
+</ul>
+
+<h2>クラスの抽象化の例</h2>
+<h3>キーボードから入力された文字列群を変換して出力するクラス</h3>
+<p>実行時に渡される数値によって、４通りの変換（文字のダブらせ、数字の除去、小文字への変換、無変換）を選択して画面出力するプログラム例を示す。</p>
+<u>Processor.java</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringReader;
+
+public class Processor {
+
+  public void run(int type) throws IOException { // 入出力エラーを返すメソッド（内部で使用している関数が IOException を返す）
+  // これから行う処理を説明する
+    if (type == 0) {
+      System.out.println("文字をダブらせます"); // A2B3C -> AA22BB33CC
+    } else if (type == 1) {
+      System.out.println("数字を除去します"); // A2B3C -> ABC
+    } else if (type == 2) {
+      System.out.println("すべて小文字に変換します"); // A2B3C -> a2b3c
+    } else {
+      System.out.println("何も変換しません"); // A2B3C -> A2B3C
+    }
+
+  // 処理の元となる文字列の取得処理
+    InputStreamReader istream = new InputStreamReader(System.in); // キーボード（System.in）から文字列を入力
+    BufferedReader bufr = new BufferedReader(istream); // 入力した文字列をバッファに蓄える
+    String source = bufr.readLine(); // バッファから１行分の文字列を取り出す
+    
+  // 文字列の変換処理
+    StringBuilder sb = new StringBuilder(); // 文字列を編集するためのクラス
+    StringReader reader = new StringReader(source); // 文字列から文字を読み込むクラス
+    int c;
+    while ((c = reader.read()) != -1) { // １文字読み込む（文字は整数コードに変換される）
+      if (type == 0) { // 文字をダブらす場合
+        sb.append((char) c);
+        sb.append((char) c);
+      } else if (type == 1) { // 数字を除去する場合
+        if (Character.isDigit(c) == false) {
+          sb.append((char) c);
+        }
+      } else if (type == 2) { // 小文字に変換する場合
+        sb.append(Character.toLowerCase((char) c));
+      } else {
+        sb.append((char) c); // 何も変換しない場合
+      }
+    }
+    String result = sb.toString(); // StringBuilder クラスのオブジェクトを String クラスに変換して返す
+    
+    System.out.println(result); // 結果の出力処理
+  }
+  
+  public static void main(String[] args) throws IOException { // 入出力エラーを返すメソッド
+    if (args.length == 0) {
+      System.err.println ("変換の型番号（0〜3）を指定して下さい");
+      return;
+    }
+    new Processor().run(Integer.valueOf(args[0]));
+  }
+}
+</pre>
+
+<p class="Caution">String クラスは初めに代入した値を編集できない（不変）クラスなので、文字列の編集には可変クラスである StringBuilder のオブジェクトを用いる。</p>
+
+<p>上記のメソッド run を分かり易い構造にするために、まずは変換の種類に依存しない処理の流れを構成し、変換の違いは各メソッド内で吸収する。</p>
+<u>Processor クラスのメソッド run の抽象化（変換方法の差異の吸収）</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+public void run(int type) throws IOException {
+  // これから行う処理を説明する
+  printDescription(type);
+  // 処理の元となる文字列の取得処理
+  String source = getSource();
+  // 文字列の変換処理
+  String result = convert(type, source);
+  // 結果の出力処理
+  display(result);
+}
+</pre>
+
+<u>上記の抽象化で導入されたメソッド群</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+private void printDescription(int <b class="innerCaution">type</b>) {
+    <b class="innerCaution">if (type == 0) {</b>
+      System.out.println("文字をダブらせます");
+    } <b class="innerCaution">else if (type == 1) {</b>
+    // 以下、省略...
+}
+
+private String getSource() throws IOException {
+  BufferedReader r = new BufferedReader(new InputStreamReader(System.in));
+  return r.readLine();
+}
+
+private String convert(int <b class="innerCaution">type</b>, String source) throws IOException {
+    StringBuilder sb = new StringBuilder();
+    StringReader reader = new StringReader(source);
+    int c;
+    while ((c = reader.read()) != -1) {
+      <b class="innerCaution">if (type == 0) {</b> // 文字をダブらす場合
+        sb.append((char) c);
+        sb.append((char) c);
+      } <b class="innerCaution">else if (type == 1)</b> {
+      // 以下、省略...
+}
+
+private void display(String result) {
+  System.out.println(result);
+}
+</pre>
+<p class="Caution">
+上記のメソッド群は、メソッド run 内でのみ必要とされるので、外部クラスには公開する必要が無く private で宣言されている。</p>
+
+<h3>ポリモーフィズムを用いた共通処理の抽象化（仮想化）</h3>
+<p>
+上記の実装方法では、type を引数とするメソッド printDescription と convert は、<b class="innerCaution">変換の種類が増える度に、else if (type == n) {... の様に新たな命令を追加する必要がある</b>。つまり、これらのメソッドには<b class="innerCaution">汎用性が無い</b>。ここでは、全ての変換に共通のクラス Converter を定義して各変換はこのクラスを継承するサブ（派生）クラスとして実装し、Processor のメソッド run は　Converter クラスを受け取って共通のメソッドを呼び出すポリモーフィズムを利用する。つまり、<b class="innerCaution">新たな変換方式を必ず Converter メソッドを継承して構築すれば、メソッド printDescription と convert には変更を一切加える必要がなくなる。</b>これは、Ｃ＋＋言語における仮想関数を用いた実装方法に相当する。</p>
+
+<u>Processor.java の修正</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+public class Processor {
+  public void run(<b class="innerCaution">Converter converter</b>) throws IOException {
+    // 省略（中身は自力で考える）
+  }
+  
+  public static void main(String[] args) throws IOException {
+    Converter converter;
+    switch (Integer.valueOf(args[0])) {
+       <b class="innerCaution">case 0: converter = new DoublingConverter(); break; // 文字のダブり
+      case 1: converter = new NoDigitConverter(); break; // 数字の除去
+      case 2: converter = new ToLowerConverter(); break; // 小文字変換
+      default: converter = new NoConverter(); break; // 変換無し </b>
+    }
+    new Processor().run(<b class="innerCaution">converter</b>);
+  }
+}
+</pre>
+
+<h3>変換機能の共通クラス</h3>
+<u>Converter.java</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+import java.io.IOException;
+
+public class Converter {
+  public String convert(String source) throws IOException {
+    return source;
+  }
+
+  public String getDescription() {
+    return "何かしたりしなかったり…";
+  }
+}
+</pre>
+
+<h3>メソッド convert 内で呼び出される（文字をダブらせる）変換クラス</h3>
+<u>DoublingConverter.java</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+import java.io.IOException;
+import java.io.StringReader;
+
+public class DoublingConverter extends Converter {
+  public String convert(String source) throws IOException {
+    StringBuilder sb = new StringBuilder();
+    StringReader reader = new StringReader(source);
+    int c;
+    while ((c = reader.read()) != -1) {
+      sb.append((char) c);
+      sb.append((char) c);
+    }
+    return sb.toString();
+  }
+
+  public String getDescription() {
+    return "文字をダブらせます";
+  }
+}
+</pre>
+<u>NoDigitConverter.java</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+import java.io.IOException;
+
+public class NoDigitConverter  extends Converter {
+
+  public String convert(String source) throws IOException {
+	// 省略（中身は自力で考える）
+  }
+  public String getDescription() {
+    // 省略（中身は自力で考える）
+  }
+}
+</pre>
+<p class="Caution">ToLowerConverter.java, NoConverter.java も同様に構成される。</p>
+
+<ul class="Point">
+<li>スーパークラスを継承する際には extends [スーパークラス名] をクラス名の後に記述する</li>
+<li>Ｃ＋＋ではキーワード virtual によって明示的に仮想関数を構築していたが、Java ではデフォルトで仮想関数として扱われるので virtual は指定しない</li>
+</ul>
+
+<h3>スーパークラスのインタフェース化</h3>
+<p>上記のプログラム例で構築した共通のスーパークラス Converter は、フィールドを持たずメソッドのみから構成されている。また、メソッドの内容（return source; や return "何かしたりしなかったり…"; の部分）は、実際にはそのサブクラスでオーバーライドされた内容が実行される。つまり、クラス　Converter は変換に共通して必要な機能の外見（界面）のみを指定するのが本来の役割と考えられるので、以下の様な<b class="innerCaution">インタフェースクラスとして実装</b>するのが望ましい。</p>
+
+<u>インタフェースクラスしての Converter.java の再構成</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+import java.io.IOException;
+
+public <b class="innerCaution">interface</b> Converter {
+  public String convert(String source) throws IOException; // メソッドの内容は記述しない
+  public String getDescription(); // メソッドの内容は記述しない
+}
+</pre>
+<p>これにより、各変換関数は以下の様に再定義される</p><!-- 実行確認済み -->
+<pre class="SourceCode">
+public class DoublingConverter <b class="innerCaution">implements</b> Converter { // 以下省略
+}
+public class NoDigitConverter <b class="innerCaution">implements</b> Converter { // 以下省略
+}
+public class ToLowerConverter <b class="innerCaution">implements</b> Converter { // 以下省略
+}
+public class NoConverter <b class="innerCaution">implements</b> Converter { // 以下省略
+}
+</pre>
+
+<ul class="Point">
+<li>インタフェースクラスの定義には、修飾子 interface を用いる</li>
+<li>インタフェースクラスを継承する際には、修飾子 implements を使用する</li>
+<li>クラスの継承 extends は一つに限られるが、インタフェースクラスは複数を継承（implements）することができる</li>
+<ul>
+<li>記述例：public class MyNewClass extends SuperClass implements IFClassA, IFClassB, IFClassC { </li>
+</ul>
+<li>インタフェースクラスを継承して構成されるクラスは、その全てのメソッドをオーバーライドしなければならない</li>
+<ul>
+<li>例えば、DoublingConverter は Converter のメソッド convert と getDescription を必ず実装する必要がある</li>
+</ul>
+</ul>
+
+<h3>abstract クラスを用いた共通機能の抽象化</h3>
+<p>上記の実装法では、各種変換クラスの変換メソッド（convert）内にも、共通の部分があり、以下の様に抽象クラスとしてまとめられる</p>
+<u>文字変換に関する各種クラスの共通部の抽象化：AbstractConverter.java</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+import java.io.IOException;
+import java.io.StringReader;
+
+public <b class="innerCaution">abstract</b> class AbstractConverter implements Converter {
+
+  public String convert(String source) throws IOException {
+    StringBuilder sb = new StringBuilder();
+    StringReader reader = new StringReader(source);
+
+    int c;
+    while ((c = reader.read()) != -1) {
+      String str = <b class="innerCaution">computeStringToAppend(c);</b>
+      if (str != null) {
+        sb.append(str);
+      }
+    }
+    return sb.toString();
+  }
+
+  <b class="innerCaution">protected abstract String computeStringToAppend(int c);</b>
+}
+</pre>
+<p>上記の例では、各変換メソッドに特有の処理は抽象メソッド（computeStringToAppend）に集約されており、この抽象クラス（AbstractConverter）内では抽象メソッドの実体は実装されていない。この実体は、この抽象クラスをスーパークラスとして継承するクラス（例えば、DoublingConverter）内で具体的に記述される。ゆえに、<b class="innerCaution">抽象クラスからはオブジェクトの実体（インスタンス）は生成できない</b>。</p>
+
+<u>抽象クラスAbstractConverterから派生されたDoublingConverter.java</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+public class DoublingConverter extends AbstractConverter {
+
+  @Override
+  protected String computeStringToAppend(int c) {
+    StringBuilder sb = new StringBuilder();
+    sb.append((char) c);
+    sb.append((char) c);
+    return sb.toString();
+  }
+
+  public String getDescription() {
+    return "文字をダブらせます";
+  }
+}
+</pre>
+<p class="innerCaution">記号 @Override はアノテーションと呼ばれ、次に書かれるメソッドが通常の宣言ではなくスーパークラスのメソッドをオーバーライドしている事をコンパイラに対して伝えるのに用いられる。これによって、プログラムの予期せぬバグの発見に役立てる事ができる。ただし、アノテーションが無くてもコンパイルエラーとはならない。</p>
+<ul class="Point">
+<li>クラス名の前に abstract を付ける事により抽象クラスを宣言できる</li>
+<li>メソッド名の前に abstract を付ける事により、内容が記述されない抽象メソッドを宣言できる</li>
+<li>抽象クラスは抽象メソッドを含む</li>
+<li>抽象クラスから直接的にオブジェクトは生成できないので、その実体化には抽象メソッドを実装するサブクラスが必要となる</li>
+</ul>
+
+<br /><br />
+<div class="Exercise">
+<h4 id="Exercise">課題１．インタフェースの利用</h4>
+<p>
+上記の仮想クラスAbstractConverterとインタフェースクラスConverterを用いて、NoDigitConverter, ToLowerConverter, NoConverter, Processorクラスを完成せよ。<br/>
+ヒント：文字 char c を文字列 String str に変換するには String str = String.valueOf(c); と書ける。
+</p>
+<p>課題は、ソースコードを含む実行可能 jar ファイルにまとめて Moodle で提出する（以下の「実行可能 jar ファイルの作成方法」を熟読すること）。ただし，ファイル名は<br>
+<code>学生番号(半角数字)_1.jar</code><br>
+として提出する。</p>
+</div>
+<br>
+<p>
+<b class="innerCaution">
+注：来週以降の課題も，<code>学生番号(半角数字)_課題番号.jar</code> の命名法で提出すること。</b>
+</p>
+<br>
+<h2 id="HowToSubmit">課題提出のための、実行可能 jar ファイルの作成方法</h2>
+<p>
+本演習での課題の提出は、ソースコードが含まれた、実行可能型 jar ファイルを用います。このファイルは、以下の要領で作成されます。
+</p>
+<ol>
+<li>javac で全てのソースファイルをコンパイルしておく。
+<pre class="CommandLine">
+javac *.java
+</pre>
+</li>
+<li>プログラム実行時の情報を記入するマニフェストファイル（MANIFEST.MF）をテキストエディタで作成する。<br />
+<u>MANIFEST.MF の内容例</u>
+<pre class="SourceCode">
+Manifest-Version: 1.0
+Main-Class: MyMainClass
+
+</pre>
+ただし、MyMainClass は、最初に起動する main 関数を記述したクラス名を記入する。残りの部分は、変更の必要無し。
+また、MANIFEST.MF というファイル名は変更可能である（が、その名前を用いる事を推奨する）。
+<b class="innerCaution">Main-Class: の行の末尾は、改行で終わる必要がある。</b>
+</li>
+<li>以下の命令で、jar ファイルを作成する
+<pre class="CommandLine">
+jar cvfm MyExercise.jar MANIFEST.MF *.class *.java
+</pre>
+ただし、先頭の jar は jar ファイルを作成する命令、フラグ cvfm は、c：作成、v：処理過程を表示、f：jarファイル名を指定、m：メタファイルを指定、を各々意味する。MyExercise.jar は生成される（提出する）jar ファイルの名前、MANIFEST.MF はマニフェストファイルの名前（名称を変更した場合には、その名前）である。*.class と *.java は、上記の命令を実行しているフォルダ内の全てのクラスファイルとソースファイルを含める事を意味するので、同じフォルダに提出に不要なファイルが存在する場合はそれらを他のフォルダに移動させるか、ワイルドカード * を用いずに必要なファイル名だけを列挙する。また、プログラムの実行に必要なデータが存在する場合には、そのファイル名も上記命令の末尾に指定する。
+<br  />
+プログラムの実行にはソースファイル *.java は不要であるが、<b class="innerCaution">提出物としては、必ずソースファイルを含める事。</b>
+</li>
+</ol>
+<p>
+生成された jar ファイルが正常に実行される事を確認する場合には、
+<pre class="CommandLine">
+java -jar MyExercise.jar
+</pre>
+を実行する。ただし、実行時に引数の値を指定する必要がある（例えば、arg1, arg2, arg3 を渡す）場合は、
+<pre class="CommandLine">
+java -jar MyExercise.jar arg1 arg2 arg3
+</pre>
+の様に、末尾に値を指定して実行する。
+また、jar ファイルに含まれている内容を確認するには、
+</p>
+<pre class="CommandLine">
+jar tvf MyExercise.jar
+</pre>
+および、その内容物（ファイル群）を取り出すには
+<pre class="CommandLine">
+jar xvf MyExercise.jar
+</pre>
+を実行する（jar とだけ入力すると、各種フラグの意味が表示される）。
+
+</div>
+</body>
+</html>

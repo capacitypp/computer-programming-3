@@ -1,0 +1,807 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>フレームワークの利用方法</title>
+<link rel="stylesheet" href="common.css" type="text/css" />
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+<div id="main">
+
+<h1>フレームワークの利用方法</h1>
+
+<h2>コレクションフレームワーク (Collection) の扱い方</h2>
+Ｃ＋＋では、リストのデータ構造等を扱うためのテンプレート化されたライブラリーとして、STL (Standard Tempate Library）が広く用いられている。
+Java においても同様に、リストやマップ等の基本的なデータ構造を扱うためのクラス群が用意されており、これらはソフトウェア開発において
+骨組み、雛形となる処理群である事から「フレームワーク（骨組み、枠組み）」と呼ばれている。
+
+<h3>Java の配列　<a href="http://www.javaroad.jp/java_array1.htm">＜＜配列の基本へのリンク＞＞</a></h3>
+<p>リスト構造等の Collection フレームワークの説明の前に、まずは Java における配列の扱いに関して紹介する。</p>
+
+<u>配列データの簡単な使用例 : ArrayTest.java</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+class ArrayTest {
+  public static void main(String[] args) { // 配列の使用例
+    int intArray[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+    float floatArray[] = new float [10];
+    for (int i = 0; i < floatArray.length; i++)
+    	floatArray[i] = 10.f * ((float) i + 1.0f); // 定数を浮動小数点として扱うには末尾に f を付ける
+        
+    String stringArray[] = new String [5]; // String クラスを格納するための【空箱】を生成
+    for (int s = 0; s < stringArray.length; s++) {
+    	stringArray[s] = new String ("StringValueOf int:" + intArray[s] + " and float:" + floatArray[s]); // String クラスを生成（new）する
+    }
+     // 配列格納結果の表示
+    for (String str : stringArray) { // for (int s = 0; s < stringArray.length; s++) { String str = stringArray[s]; と同じ意味
+    	System.out.println (str);
+    }
+  }
+}
+</pre>
+<ul class="Point">
+<li>配列フィールド（変数）は、配列型　配列名[]; または、配列型[]　配列名; で宣言する</li>
+<li>配列は、= { 要素１, 要素２, ... 要素N } で初期化でき、サイズは自動的に N となる</li>
+<li>配列のサイズは、配列名.length で参照できる</li>
+<li>for (配列要素の型 配列要素名 : 配列名) で各要素に対する繰返し処理が簡単に記述できる</li>
+<li>２次元配列は、配列型　配列名[][]; または、配列型[][]　配列名; で宣言する</li>
+</ul>
+
+<h3>Collection の分類　<a href="http://www.javaroad.jp/java_collection1.htm">＜＜概要と使用例へのリンク＞＞</a></h3>
+<p>灰色の領域で囲まれたクラスは実体（インスタンス）化が可能であり、白色の領域で囲まれたクラスはインタフェース（interface）なので実体化ができない。</p>
+<img width="512" src="image/collection.jpg" />
+<br />
+<br />
+<table width="600" border="1">
+  <tr>
+    <th>クラス名</th>
+    <th>意味</th>
+    <th>種別</th>
+  </tr>
+  <tr>
+    <td>Iterable</td>
+    <td>反復子を提供できる性質</td>
+    <td>インタフェース</td>
+  </tr>
+  <tr>
+    <td>Collection</td>
+    <td>要素の集合</td>
+    <td>インタフェース</td>
+  </tr>
+  <tr>
+    <td>List</td>
+    <td>順序付き要素の集合</td>
+    <td>インタフェース</td>
+  </tr>
+  <tr>
+    <td>ArrayList</td>
+    <td>配列データ構造での実装</td>
+    <td>普通のクラス</td>
+  </tr>
+  <tr>
+    <td>LinkedList</td>
+    <td>連結リストデータ構造での実装</td>
+    <td>普通のクラス</td>
+  </tr>
+  <tr>
+    <td>Set</td>
+    <td>重複の無い要素の集合</td>
+    <td>インタフェース</td>
+  </tr>
+  <tr>
+    <td>SortedSet</td>
+    <td>順序付き集合のインタフェース</td>
+    <td>インタフェース</td>
+  </tr>
+  <tr>
+    <td>HashSet</td>
+    <td>ハッシュ値を利用した集合</td>
+    <td>普通のクラス</td>
+  </tr>
+  <tr>
+    <td>TreeSet</td>
+    <td>TreeMapに基づく順序付き集合の実装</td>
+    <td>普通のクラス</td>
+  </tr>
+  <tr>
+    <td>LinkedHashSet</td>
+    <td>ハッシュ値付きの連結リストでの実装</td>
+    <td>普通のクラス</td>
+  </tr>
+</table>
+<br />
+<h3>ArrayList の利用例　<a href="http://www.javaroad.jp/java_collection2.htm">＜＜リスト型クラスの詳細へのリンク＞＞</a></h3>
+<u>ArrayListTest.java</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+import java.util.ArrayList;
+
+class ArrayListTest {
+  public static void main(String[] args) { // 機能テストのための関数
+    ArrayList strList = new ArrayList(); // 文字列の集合を格納するアレイリストデータ構造の生成
+    strList.add("foo"); // 要素の追加
+    strList.add("foo");
+    strList.add("bar");
+    strList.add("bar");
+    strList.add("baz");
+    strList.add("baz");
+    
+    String one = (String) strList.get(1); // ２番目の要素の取得（型のキャスト (String) が必要）
+    System.out.println(one); // (二つ目の) foo
+    System.out.println(strList.size()); // 6
+    System.out.println(strList.contains("foo")); // true
+    System.out.println(strList.contains("xxx")); // false
+    
+    strList.remove(0);
+    System.out.println(strList.get(1)); // bar
+    System.out.println(strList.size()); // 5
+    System.out.println(strList.contains("foo")); // true
+    System.out.println(strList.contains("xxx")); // false
+    
+    for (Object element : strList) { // strList の先頭要素から、各要素を取り出して繰り返し処理
+      System.out.println((String) element); // 型のキャスト (String) が必要
+      // foo、bar、bar、baz,、bazを順番に表示
+    }
+  }
+}
+</pre>
+
+<h3>Set の利用例　<a href="http://www.javaroad.jp/java_collection3.htm">＜＜ Set 型クラスの詳細へのリンク＞＞</a></h3>
+<u>SetTest.java</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+import java.util.HashSet;
+
+class SetTest {
+  public static void main(String[] args) {
+    HashSet intSet = new HashSet();
+    intSet.add(100);
+    intSet.add(100);
+    intSet.add(500);
+    intSet.add(500);
+    intSet.add(800);
+    intSet.add(800);
+  
+    System.out.println(intSet.size()); // 3
+    System.out.println(intSet.contains(500)); // true
+    System.out.println(intSet.contains(300)); // false
+  
+    intSet.remove(500); // 500番目という意味ではない
+  
+    System.out.println(intSet.size()); // 2
+    System.out.println(intSet.contains(500)); // false
+    System.out.println(intSet.contains(300)); // false
+  
+    for (Object element : intSet) {
+      System.out.println((Integer) element); // 100, 800を順序不定で表示（型のキャストが必要）
+    }
+  }
+}
+</pre>
+
+<h3>Collection の性質の違いを調べるサンプルプログラム</h3>
+<u>CollectionSample.java</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+import java.util.*;
+
+public class CollectionSample {
+
+  public static void main(String[] args) {
+    ArrayList list1 = new ArrayList();
+    LinkedList list2 = new LinkedList();
+    HashSet set1 = new HashSet();
+    TreeSet set2 = new TreeSet();
+    LinkedHashSet set3 = new LinkedHashSet();
+
+    for(String arg : args) {
+      list1.add(arg);
+      list2.add(arg);
+      set1.add(arg);
+      set2.add(arg);
+      set3.add(arg);
+    }
+    System.out.println("ArrayList = " + list1);
+    System.out.println("LinkedList = " + list2);
+    System.out.println("HashSet = " + set1);
+    System.out.println("TreeSet = " + set2);
+    System.out.println("LinkedHashSet = " + set3);
+  }
+}
+</pre>
+
+<div class="Exercise">
+<h4>練習問題</h4>
+<p>上記のプログラムを以下の様に実行した出力結果から、各クラスの挙動の特徴や相違点を確認せよ</p>
+<pre class="CommandLine">
+java CollectionSample T O Y O H A S H I 1 2 3 2 1
+</pre>
+</div>
+
+<br />
+<h2>データの抽象度を高めた処理方法</h2>
+<p>第１週目の「継承とインタフェース」において、抽象クラスやインタフェースクラスを用いることによって、抽象度の高い汎用的なメソッドを構築できる事を紹介した。ここでは、Collection 抽象クラスを用いて、メソッドの抽象度を高める手法を示す。</p>
+<h3>ジェネリック型</h3>
+<p>ジェネリック型は、Ｃ＋＋のテンプレートで導入された、型に依存しない関数の設計法であるが、Ｃ＋＋で導入されるテンプレートは、コンパイル時に型が決定されたバイナリを静的に作る。一方、Java のジェネリクスは、型が未決定の状態で実行時に動的にインスタンス化される点が異なる。</p>
+
+<u>ジェネリック型の使用例</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+public class GenericMethod {
+   // E の実際の型は実行時に決定される
+   public static < E > void printArray( E[] inputArray ){ // 型 E の配列要素を引数に取る
+      for ( E element : inputArray )
+         System.out.printf( "%s ", element ); // 型 E の配列の要素を出力表示
+      System.out.println();
+   }
+
+   public static void main( String args[] ) {
+      Integer[] integerArray = { 1, 2, 3, 4, 5, 6 }; // Integer 型の配列
+      Double[] doubleArray = { 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7 }; // Double 型の配列
+      Character[] characterArray = { 'H', 'E', 'L', 'L', 'O' }; // Character 型の配列
+
+      System.out.println( "Array integerArray contains:" );
+      printArray( integerArray );
+      System.out.println( "\nArray doubleArray contains:" );
+      printArray( doubleArray );
+      System.out.println( "\nArray characterArray contains:" );
+      printArray( characterArray );
+   }
+}
+</pre>
+<ul class="Point">
+<li>ジェネリクスでは、実行時に指定する任意の型を一個の大文字（E, T 等）を括弧 &lt; &gt; で括って宣言し、型宣言の部分をその文字で置き換えてメソッドを構成する</li>
+</ul>
+<p class="Caution">System.out.printf( "%s ", element ); のフォーマット記述子「%s」は、toString メソッド（クラスの値を文字列に変換するメソッド）の戻り値を出力する。
+（ただし、参照先変数がnullならnull、Formatableを実装していたらformatToメソッドの戻り値となる）</p>
+
+<p>実は、ArrayList もジェネリック型として、
+<pre>public class ArrayList&lt;E&gt; extends AbstractList&lt;E&gt; implements List&lt;E&gt;, RandomAccess, Cloneable, Serializable</pre>
+のように定義されているので、リストに格納されるデータの型（上記の例ではString）を指定できる。これにより、ArrayTest.java は、以下の様に記述できる。
+<pre class="SourceCode">
+import java.util.ArrayList;
+
+class ArrayListTest {
+  public static void main(String[] args) { // 機能テストのための関数
+    ArrayList <span class="innerCaution">&lt;String&gt;</span> strList = new ArrayList <span class="innerCaution">&lt;String&gt;</span> (); // 文字列の集合を格納するアレイリストデータ構造の生成
+    strList.add("foo"); // 要素の追加
+	// 以下、同様...
+    
+    String one = strList.get(1); // ２番目の要素の取得（<span class="innerCaution">型のキャスト (String) は不要</span>）
+	// 以下、同様...
+    
+    for ((<span class="innerCaution">String</span>  element : strList) { // strList の先頭要素から、各要素を取り出して繰り返し処理
+      System.out.println(element); // <span class="innerCaution">型のキャスト (String) が不要</span>
+      // foo、bar、bar、baz,、bazを順番に表示
+    }
+  }
+}
+</pre>
+
+<h3>Collection クラスを用いた抽象化</h3>
+
+<u>引数にString用のコレクションをとるメッソドと反復子の実装例</u>
+<pre class="SourceCode"><!-- 実行確認済み -->
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.TreeSet;
+
+public class CollectionTest {
+	
+	public static void main(String[] args) {
+	  <b class="innerCaution">ArrayList&lt;String&gt;</b> alist = new ArrayList&lt;String&gt;();
+	  alist.add ("foo");
+	  alist.add("bar");
+	  <b class="innerCaution">TreeSet&lt;String&gt;</b> tree = new TreeSet&lt;String&gt;();
+	  tree.add("nodeA");
+	  tree.add("nodeB");
+
+	  CollectionTest test = new CollectionTest ();
+	  test.printStatus(alist); // ArrayList で実行
+	  test.printStatus(tree); // TreeSet で実行
+	  
+	  <b class="innerCaution">Iterator&lt;String&gt;</b> itr = alist.iterator(); // 反復子を用いた繰返し表示
+	  while (itr.hasNext()) { 
+	  	System.out.println(itr.next());
+	  }
+	  itr = tree.iterator();
+	  while (itr.hasNext()) {
+	  	System.out.println(itr.next());
+	  }
+	}
+
+	private void printStatus(<b class="innerCaution">Collection&lt;String&gt;</b> collection) { // 引数を Collection クラスとして受け取る
+	  System.out.println("size = " + collection.size());
+	  StringBuilder sb = new StringBuilder();
+	  sb.append("element = ");
+	  for (Object element : collection) {
+            sb.append(element).append(" ");
+          }
+          System.out.println(sb.toString());
+	}
+}
+
+</pre>
+<p>上記の例の様に、メソッド printStatus は抽象度の高いクラス（Collection）で値を受け取る事により、ArrayList や TreeSet 等、Collectionを継承する全てのデータ型クラスに対して処理が可能になるので、メソッド printStatus の汎用性が高まる。</p>
+<p class="Caution">配列の場合と同様に、for (要素の型 各要素の変数 : コレクション変数名) で各要素に対する繰返し処理が簡単に記述できる</p>
+
+<p>また、Collection クラスで定義される反復子（Iterator）を用いる事により、要素の型名を明示しない繰り返し処理が可能となる。<br />
+<span class="innerCaution">ただし、反復子（Iterator）自体は、インタフェース型である</span><a href="http://www.javaroad.jp/java_collection5.htm">　＜＜詳細な説明へのリンク＞＞</a></p>
+<ul class="Point">
+<li>抽象度の高い Collection クラスを用いる事により、メソッドの汎用性が高まる</li>
+<li>反復子 Iterator インタフェースを用いると各要素の型名の記述が不要となるので、メソッドの抽象度がより高まる</li>
+</ul>
+
+
+<br /><br />
+
+<h2>ジェネリック型を用いたマップフレームワーク (Map) の扱い方</h2>
+<p>Map 型データは、キーとバリュー（値）の対でデータを格納する連想記憶であり、辞書データ等の扱いに適したフレームワークである。</p>
+
+<h3>Map の分類　<a href="http://www.javaroad.jp/java_collection4.htm">＜＜ Map インタフェースの詳細へのリンク＞＞</a></h3>
+<p>Map クラスの継承関係は下記の図の様に表され、灰色の矩形で囲まれたクラスが実装可能な（抽象型でない）クラスである。Collection と同様に、白色の領域で囲まれたクラスはインタフェース（interface）なので実体化ができない。</p>
+
+<img width="300" src="image/map.jpg" />
+
+<br /><br />
+
+<table width="800" border="1">
+  <tr>
+    <th>クラス名</th>
+    <th>意味</th>
+    <th>種別</th>
+  </tr>
+  <tr>
+    <td>Map</td>
+    <td>キーと値が対となった要素</td>
+    <td>インタフェース</td>
+  </tr>
+  <tr>
+    <td>SortedMap</td>
+    <td>キーに対して順序付けができる</td>
+    <td>インタフェース</td>
+  </tr>
+    <td>HashMap</td>
+    <td>ハッシュ値に基づく実装</td>
+    <td>普通のクラス</td>
+  </tr>
+  <tr>
+    <td>TreeMap</td>
+    <td>Red-Black ツリーに基づくに基づく実装</td>
+    <td>普通のクラス</td>
+  </tr>
+  <tr>
+    <td>LinkedHashMap</td>
+    <td>繰り返し順序を持つハッシュ値とリンクリストでの実装</td>
+    <td>普通のクラス</td>
+  </tr>
+</table>
+<br />
+
+<h3>Map の構造</h3>
+<p>Map のデータの内部は、Entry というインタフェースの集合（Set クラス）から構成され、各 Entry は Key と Value の値を読み書きする。</p>
+<img width="300" src="image/mapEntry.jpg" />
+
+<h3>HashMap の利用例</h3>
+<u>String 型の Key と Value を保持する HashMap 型変数 map の操作例：</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+import java.util.HashMap;
+import java.util.Map;
+
+public class HashMapTest {
+	public static void main(String[] args) {
+		Map &lt;String,String&gt; map = new HashMap&lt;String,String&gt;();
+		map.put("講義名", "ソフトウェア演習");
+		map.put("場所", "F101");
+		map.put("実施日", "金曜日");
+		map.put("PC", "iMac");
+	
+		System.out.println(map.size()); // 4
+		System.out.println(map.containsKey("PC")); // true
+		System.out.println(map.containsKey("iMac")); // false
+		System.out.println(map.get("試験日")); // null
+		System.out.println(map.get("実施日")); // 金曜日
+	}
+}
+</pre>
+
+<u>Map からデータを取り出す３種類の方法</u>
+
+<!-- 実行確認済み -->
+<pre class="SourceCode">
+Set&lt;String&gt; keySet = map.keySet();
+Collection&lt;String&gt; values = map.values();
+Set&lt;Map.Entry&lt;String, String&gt;&gt; entrySet = map.entrySet();
+
+System.out.println(keySet);
+System.out.println(values);
+System.out.println(entrySet);
+</pre>
+
+<u>entrySet を用いた繰返し処理</u>
+
+<!-- 実行確認済み -->
+<pre class="SourceCode">
+for (Map.Entry&lt;String, String&gt; entry : map.entrySet()) {
+  String key = entry.getKey();
+  String value = entry.getValue();
+  System.out.println(key + ": " + value);
+}
+</pre>
+<ul class="Point">
+<li>辞書型のデータを扱う場合には Map フレームワークを利用する</li>
+<li>Map 型のデータは、キーと値の組み合わせで管理する</li>
+</ul>
+
+<div class="Exercise">
+<h4>練習問題</h4>
+<p>HashMap に対して、同じキー(Key)を持ち異なる値(Value)をもつデータを追加(put)した場合、データ内部はどのように更新されるか、実際にプログラムを動かして確認せよ。</p>
+</div>
+
+<br />
+<h2>Collection や Map フレームワークを使用する際のクラス制御</h2>
+
+<p>集合や辞書のデータをCollection や Map フレームワークを利用して扱う場合には、対象となる各要素のデータをオブジェクトとして扱うクラスの
+等価性や可変性に関して注意すべき点がある。</p>
+
+<h3>オブジェクト間の等価性</h3>
+
+<u>オブジェクト間の等価性の調査</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+String foo = new String("nsw");
+String bar = foo;
+String baz = new String("nsw");
+
+System.out.println(foo == bar); // true を返す
+System.out.println(foo == baz); // false を返す
+System.out.println(foo.equals(bar)); // true を返す
+System.out.println(foo.equals(baz)); // true を返す
+
+StringBuilder fooB = new StringBuilder("nsw");
+StringBuilder barB = fooB;
+StringBuilder bazB = new StringBuilder("nsw");
+
+System.out.println(fooB == barB); // true を返す
+System.out.println(fooB == bazB); // false を返す
+System.out.println(fooB.equals(barB)); // true を返す
+System.out.println(fooB.equals(bazB)); // false を返す
+</pre>
+<ul class="Point">
+<li>オブジェクトの代入（bar = foo;）では参照（すなわちポインタの値）がコピーされるので、オブジェクト bar と foo は同じ実体（インスタンス）を表す</li>
+<li>等価演算子 == は、実体が同じ場合にのみ true となる。すなわち、保持している値が同じでも、実体が異なれば（メモリ上の格納位置が異なれば）false となる</li>
+<li>等価性を検証するメソッド（equals）は、各クラスで異なった実装になっている（例：Stringクラスでは値が同一であれば等価とみなしているが、StringBuilderクラスでは実体が同じでないと等価とは見なさない）</li>
+</ul>
+
+<u>色クラス Color の等価性の実装例</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+public class Color {
+  public int red;
+  public int green;
+  public int blue;
+
+  public Color(int red, int green, int blue) {
+    this.red = red;
+    this.green = green;
+    this.blue = blue;
+  }
+  
+@Override
+  <b class="innerCaution">public boolean equals(Object obj)</b> { // 等価性を判定する
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    Color other = (Color) obj;
+    if (blue != other.blue || green != other.green || red != other.red) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public int hashCode() { // オブジェクトのハッシュ値を返す（各色の解像度が255段階以下の場合）
+    return (red &amp; 0xff) &lt;&lt; 16) | (green &amp; 0xff) &lt;&lt; 8) | (blue &amp; 0xff);
+  }
+  
+  public static void main(String[] args) { // テスト用メソッド
+    Color red = new Color (255, 255, 0);
+    Color green = new Color (0, 255, 0);
+    Color otherGreen = new Color (0, 255, 0);
+    System.out.println (red.equals (green));
+    System.out.println (green.equals (otherGreen));
+    System.out.println (red.hashCode () + ", " + green.hashCode() + ", " + otherGreen.hashCode());
+  }
+}
+</pre>
+<ul class="Point">
+<li>新たにクラスを作成する場合、必要に応じて等価性を判定するメソッド（equals）をオーバーライドする</li>
+<li>Collection や Map 型のクラスでの扱いを保証するには、ハッシュの値を計算するためのメソッド（hashCode）をオーバーライドするのが望ましい</li>
+<ul>
+<li>オブジェクトが等価であれば同じハッシュ値を、非等価であれば異なるハッシュ値を返すように実装する</li>
+</ul>
+</ul>
+
+<h3>オブジェクトの不変／可変性</h3>
+<p>クラスのフィールドとはオブジェクトの状態を表すものと捉えられるが、フィールドの値の書き換えを許すか否かで、オブジェクトの可変／不変性の性質を設定できる。</p>
+
+<u>可変オブジェクトの作成例</u>
+<pre class="SourceCode">
+public class Mutable {
+  private String message; // 普通のフィールド
+
+  public Mutable(String message) {
+    this.message = message;
+  }
+  public void hello() {
+    System.out.println(message);
+  }
+  public void <b class="innerCaution">setMessage</b>(String message) {
+    <b class="innerCaution">this.message = message</b>;
+  }
+}
+</pre>
+
+<u>不変オブジェクトの作成例</u>
+<pre class="SourceCode">
+public <b class="innerCaution">final</b> class Immutable {
+  private <b class="innerCaution">final</b> String message; // final 宣言により再代入が禁止されている
+
+  public Immutable(String message) {
+    this.message = message;
+  }
+  public void hello() {
+    System.out.println(message);
+  }
+}
+</pre>
+<ul class="Point">
+<li>final 修飾子によって、初期化の代入以後の再代入を禁止できる</li>
+<li>可変クラスはフィールドの値を常に更新できる(Mutable と呼ばれる)</li>
+<li>可変クラスは状態を有するオブジェクトとなる</li>
+<li>不変クラスのフィールドの値は初期化以後は更新できない(Immutable と呼ばれる)</li>
+<li>不変クラスは状態の無いオブジェクトとなる</li>
+<li>集合（Collection）や辞書（Map）クラスに登録するオブジェクトが可変の場合、登録後の状態変化によって誤動作を生じる可能性がある</li>
+<ul>
+<li>データの登録後に等価（あるいは非等価）なオブジェクトに変化すると、順序や排他性に関する一貫性を失う</li>
+<li>したがって、集合や辞書で用いるデータは、できるだけ不変クラスを用いるのが望ましい</li>
+</ul>
+</ul>
+
+<br />
+
+<div class="Exercise" id="Exercise">
+<h4>課題２．フレームワークを用いた関係データ処理　<a href="./car.csv">＜＜テキストデータ car.csv へのリンク＞＞</a></h4>
+<p>自動車の仕様とクラスが記述されたテキストデータ(car.csv)を読み込み、以下の問合せが可能なプログラム(Car.java)を作成する。<br/>
+テキストデータの各行には<br/>
+<pre>
+価格 (buying)、維持費 (maint)、ドア数 (doors)、乗車定員 (persons)、荷台の広さ (luggage)、安全性 (safety)，評価値 (eval)
+</pre>
+<br/>の形式で、各自動車の種類に対するデータが登録されている。ただし、各項目の取りうる値は、以下の通りである。
+<pre>
+buying: vhigh, high, med, low.
+maint: vhigh, high, med, low.
+doors: 2, 3, 4, 5more.
+persons: 2, 4, more.
+luggage: small, med, big.
+safety: low, med, high.
+eval: unacc, acc, good, vgood.
+</pre>
+ただし、v は　very を表し、acc, unacc は acceptable（許容範囲内）, unacceptable（許容範囲外）を表す。
+</p>
+<p>
+問い合わせ方法<br/>
+「項目, 条件」を指定して、その条件に該当する各クラスの自動車数を表示する。例えば、
+<pre class="CommandLine">
+java Car buying=med
+</pre>
+を実行すると、
+<pre class="CommandLine">
+unacc = 268, acc = 115, good = 23, vgood = 26
+</pre>
+が出力される（数字は実際には異なる値になる）。ただし、条件を記述する部分の「=」の左右には空白を入れないものとする。
+<br />
+また、条件を複数入力した場合にも対応できる様にする。ただし、論理和を and、論理積を or で与える。<br />
+例：
+<pre class="CommandLine">
+java Car buying=med or doors=3 and safety=high 
+</pre>
+ただし、条件の指定に ( ) は用いないものとし、論理演算は入力順に評価される（上記の例の場合は、((buying=med or doors=3) and safety=high）と解釈される）
+</p>
+
+</div>
+<br />
+<h2 id="Appendix">課題作成に際しての補足</h2>
+<h3>クラス構築例</h3>
+<u>コレクションのクラスを継承する場合</u>
+<pre class="SourceCode">
+import java.util.*;
+public class Car <b class="innerCaution">extends ArrayList&lt;HashMap&lt;String,String&gt;&gt;</b> {
+
+	static String keys[] = {"buying", "maint", "doors", "persons", "luggage", "safety", "eval"};
+	static String evalLabel[] = {"unacc", "acc", "good", "vgood"};
+	
+	public Car (String fileName) {
+		// car.csv の読み込み
+	}
+	
+	public int [] analyze(String query[]) {
+		int results[] = new int [evalLabel.length];
+		// 検索処理
+		return results;
+	}
+	
+	static void main (String[] args) {
+		Car car = new Car ("car.csv");
+		int evals [] = car.analyze(args);
+		for (int i=0; i &lt; evals.length; i++)
+			System.out.printf("%s = %d,\n", evalLabel[i], evals[i]);
+	}
+}
+</pre>
+
+<u>コレクションのクラスをフィールドに持つ場合</u>
+<pre class="SourceCode">
+import java.util.*;
+<b class="innerCaution">public class Car {</b>
+
+	static String keys[] = {"buying", "maint", "doors", "persons", "luggage", "safety", "eval"};
+	static String evalLabel[] = {"unacc", "acc", "good", "vgood"};
+	<b class="innerCaution">private ArrayList&lt;HashMap&lt;String,String&gt;&gt; data;</b>
+	
+	public Car (String fileName) {
+		<b class="innerCaution">data = new ArrayList&lt;HashMap&lt;String,String&gt;&gt; ();</b>
+		// car.csv の読み込み
+	}
+	
+	public int [] analyze(String query[]) {
+		int results[] = new int [evalLabel.length];
+		// 検索処理
+		return results;
+	}
+	
+	static void main (String[] args) {
+		Car car = new Car ("car.csv");
+		int evals [] = car.analyze(args);
+		for (int i=0; i &lt; evals.length; i++)
+			System.out.printf("%s = %d,\n", evalLabel[i], evals[i]);
+	}
+}
+</pre>
+
+<h3>プログラム実行例（正解データ例）</h3>
+<pre class="CommandLine">
+java Car maint=med and doors=3
+unacc = 66, acc = 30, good = 6, vgood = 6
+java Car persons=4 or luggage=big
+unacc = 592, acc = 270, good = 48, vgood = 50
+java Car persons=more and safety=high or luggage=med
+unacc = 429, acc = 197, good = 33, vgood = 45
+</pre>
+
+<h3>テキストファイルの読み込み</h3>
+<p>Java において、テキストファイルの入出力はクラス関数を用いる。基礎的な知識の習得は<a href="http://www.javaroad.jp/java_io1.htm" class="innerCaution">ファイル入出力の基本</a>を参照する事。</p>
+
+<u>BufferedReader を用いたソースファイルの読み込み</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+
+public class TextFileReader {
+	FileReader fileReader = null;
+	
+	public TextFileReader(String fileName) {
+		try {
+			fileReader = new FileReader(fileName);
+		} catch (FileNotFoundException e) {
+			System.out.println("ファイルが見つかりません");
+		}
+	}
+
+	public void readAndDisplay() { // ファイル読み込みと行番号付き内容表示
+		BufferedReader bufferedReader = new BufferedReader(fileReader);
+		String line;
+		int lineNumber = 0;
+		try {
+			while ((line = bufferedReader.readLine()) != null) {
+				System.out.printf("%2d: %s%n", lineNumber, line);
+				lineNumber++;
+			}
+			bufferedReader.close();
+		} catch (IOException e) {
+			System.out.println("入出力エラーが発生しました");
+		}
+	}
+
+	public static void main(String[] args) {
+		TextFileReader tfReader = new TextFileReader("car.csv");
+		if (tfReader != null)
+			tfReader.readAndDisplay();
+	}
+}
+</pre>
+
+<ul class="Point">
+<li>FileReader クラスによってファイルを読み込むためにアクセスする
+（<a href="http://www.javaroad.jp/java_io2.htm">詳細はこちら</a>）
+</li>
+<li>BufferedReader クラスによってファイルから読み込めるだけのデータをバッファに貯め込む（<a href="http://www.javaroad.jp/java_io4.htm">詳細はこちら</a>）</li>
+<li>BufferedReader の readLine メソッドによって、ファイルの内容を１行づつ読み込む</li>
+<li>BufferedReader のインスタンスは、使用後に close メソッドによって閉じておく</li>
+</ul>
+
+<h3>正規表現を用いた文字列の分割</h3>
+<p>
+String クラスのメソッド split は、文字列を分割するのに用いられるが、分割の規則を正規表現で指定できる。
+</p>
+<pre>
+String sample="boo:and:foo";
+String div1[] = sample.split (":"); // div1 == 	{ "boo", "and", "foo" } に分割される
+String div2[] = sample.split ("o"); // div2 == { "b", "", ":and:f" } に分割される
+</pre>
+<p>
+さらに高度な検索や置換を実装するために、Pattern クラスや Matcher クラスも用意されている
+<a href="http://www.javaroad.jp/java_character7.htm">＜＜詳細な説明へのリンク＞＞</a>。</p>
+
+<br />
+
+<p class="Caution">Java の文字列クラス（String）で、より高度かつ柔軟な検索や置換、文字列の抜き出しを実行するためには「正規表現」が用いられる。これには Unix システムの grep や emacs エディタ、および perl インタープリタ等で共通に用いられる、パターンの記述方法が用いられる。 </p>
+
+<h3>例外処理</h3>
+<p>
+上記のプログラム例では、入力処理に伴うエラーに対する例外処理が記述されている。Ｃ言語では、例えば関数によって返された値が異常値（NULL等）であるかを判定した後に例外が生じた際の処理を記述するが、Ｃ＋＋では、try catch という例外処理の記述を用いた。Java においても、この try catch の例外処理を用いる。
+</p>
+<p class="Caution">例外処理を記述しない（try 〜 catch の部分を省略する）と、コンパイル時に以下の様なエラーが出力される：</p>
+<pre class="CommandLine">
+TextFileReader.java:7: 例外 java.io.FileNotFoundException は報告されません。スローするにはキャッチまたは、スロー宣言をしなければなりません。
+    FileReader fileReader = new FileReader("car.csv");
+                            ^
+TextFileReader.java:11: 例外 java.io.IOException は報告されません。スローするにはキャッチまたは、スロー宣言をしなければなりません。
+    while ((line = bufferedReader.readLine()) != null) {
+                                          ^
+TextFileReader.java:15: 例外 java.io.IOException は報告されません。スローするにはキャッチまたは、スロー宣言をしなければなりません。
+    bufferedReader.close();
+                        ^
+エラー 3 個
+</pre>
+
+<!--<p>try catch の文は、多用するとプログラム全体の可読性（読み易さ）に悪影響を及ぼすので、例外を発生する可能性のある処理を try { } 部分にまとめて記述し、それらに対応する各種の例外処理を個別の catch で受ける、以下の記述方法が許されている。
+</p>
+<u>例外の対象命令と処理の分割</u>
+<pre  class="SourceCode">
+public class ReadTextFile {
+  
+  public static void main(String[] args) {
+    BufferedReader bufferedReader = null;
+    try { // 例外発生の可能性のある処理をまとめて記述
+      bufferedReader = new BufferedReader(new FileReader("ReadTextFile.java"));
+      String line;
+      int lineNumber = 0;
+      while ((line = bufferedReader.readLine()) != null) {
+        System.out.printf("%2d: %s%n", lineNumber, line);
+        lineNumber++;
+      }
+    } catch (FileNotFoundException e) { // ファイルが存在しない場合の例外処理
+      System.out.println("ファイルが見つかりません");
+    } catch (IOException e) { // 入出力関係の例外処理
+      System.out.println("入出力エラーが発生しました");
+    } finally { // 例外が発生しなかった場合に行う処理
+      if (bufferedReader != null) {
+        try {
+          bufferedReader.close();
+        } catch (IOException e) {
+          e.printStackTrace ();
+        }
+      }
+    }
+  }
+}
+</pre>
+ -->
+</div>
+</body>
+</html>

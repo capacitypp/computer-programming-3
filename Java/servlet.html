@@ -1,0 +1,600 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>サーブレット</title>
+<link rel="stylesheet" href="common.css" type="text/css" />
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+<div id="main">
+
+<h1>サーブレット</h1>
+<p>
+サーブレット（Servlet）とは、Webサーバ上で実行されるモジュール(部品)化されたJavaプログラムであり、Webサーバの機能拡張に用いられる。
+</p>
+<p>
+下図に示す様に、Webブラウザで閲覧されているHTML文章の中からサーブレットと通信する命令（GET,POST,PUT,DELETE）が送信され、サーブレットはその命令を HttpServletRequest クラスのオブジェクトとして受け取る。
+そして、Filter 等の処理を経て返すメッセージを HttpServletResponse クラスのオブジェクトとしてクライアントに送信する。
+</p>
+<img src="image/Servlet.png" width="600"/>
+<br />
+<i>ちなみに、アプレット（Applet）は、クライアントで実行されるJavaプログラムである。</i>
+<br />
+CGI 等のサーバサイドプログラムとは異なり、一度呼び出されるとメモリに常駐するので高速な処理が可能である。また、データの永続的な扱いが可能なので、情報共有にも適している。
+</p>
+<p>
+Socket 通信が TCP 層でのデータ送受信であるのと比較して、Servlet は HTTP 層でのデータ送受信となる。
+</p>
+<p><a href="http://www.javadrive.jp/servlet/ini/">＜＜サーブレットの基本情報はこちらを参照する＞＞</a></p>
+
+<h2>Apache Tomcat を用いたサーバ環境の準備</h2>
+本演習では、サーブレットの開発環境としてオープンソースの Tomcat を用いる。以下の手順で環境を整える。
+<ol>
+<li><a href="./apache-tomcat-8.0.28.zip">apache-tomcat-8.0.28.zip</a>ファイルを自分の作業ディレクトリにコピーして解凍する。<span class="innerCaution">ただし、コピーする作業ディレクトリーには実行のためのパスが通っていなければならない（したがって、ホームディレクトリ下で解凍するのが安全）</span></li>
+<li>ターミナルを起動し、生成された tomcat ディレクトリに cd 命令で移動する</li>
+<li>cd bin でシェルスクリプトファイルが格納されている bin フォルダに移動する</li>
+<li>chmod +x *.sh を実行し、.sh の拡張子を有する全ファイルに実行権を付与する（この権限変更は ls -l 命令で確認できる）</li>
+<li>./startup.sh を実行し、tomcat を起動する</li>
+<li>ブラウザを立ち上げ、URLの入力欄に http://localhost:8080/ を入力する<span class="innerCaution">（実際には、webapps/ROOT フォルダの下にある index.html が呼び出される）</span></li>
+<li>
+以下の表示：<br />
+<img width="500" src="./image/tomcat.jpg" />
+が出力されたら、サーブレットを起動する環境が作成されている</li>
+</li>
+<li><b class="innerCaution">上記の画面が表示されなかった場合にはリブート（./shutdown.sh を実行してから再度./startup.sh を実行）してみる。</b></li>
+<li>Tomcat を終了する際には、ターミナルで ./shutdown.sh を実行する</li>
+
+</ol>
+<p class="innerCaution">
+Tomcat のプログラムは、Web クライアントからのリクエストを待ち受けて Web ページを送信する、Web サーバーである。
+</p>
+
+<h3>捕捉：任意の場所で Tomcat を解凍する場合</h3>
+<p>Tomcat の実行環境を置くフォルダのパスを環境変数 CATALINA_HOME に設定する必要がある＜＜<a href="http://www.javadrive.jp/servlet/install/index6.html">解説サイト（Windows 版）はこちら</a>＞＞。</p>
+<p><u><b>Mac の開発環境</b></u>での設定方法は以下の通り：</p>
+<ol>
+<li>ターミナルを開き、<u>export を用いて環境変数 CATALINA_HOME を設定する</u>
+<pre class="CommandLine">
+export CATALINA_HOME=/ファイルを解凍したフォルダの絶対パス/apache-tomcat-8.0.28
+</pre>
+</li>
+<li>環境変数が正常に設定された事を確認するには，以下を実行する。
+<pre class="CommandLine">
+echo $CATALINA_HOME
+</pre>
+</li>
+</ol>
+<p class="Caution">bin/catalina.sh のシェルスクリプトファイルはサーブレットの起動時に実行されるので、テキストエディタで
+このファイルに上記の export 命令を追加しておけば、環境変数の設定を自動化できる。</p>
+
+
+<h2>サーブレットの構築方法</h2>
+<h3>Step 1. サブディレクトリの作成</h3>
+<p>
+apache-tomcat-8.0.28.zip を解凍すると同名のフォルダが作成されるが、サーブレットを作成して配備するディレクトリ（フォルダ）があらかじめ決められており、
+下図で示される様に<b class="innerCaution">webapps ディレクトリの下に、新規に作成するサーブレットプログラム用のディレクトリを作成</b>する（名称は任意に設定できる）。
+<img src="./image/servlet.jpg" width="600px"/><br/>
+　　　　<b>Tomcat 開発環境のディレクトリ構成</b><br />
+この図に示されている様に、<b class="innerCaution">作成したディレクトリの下に WEB-INF と名付けられるディレクトリと、さらにその下に classes と名付けられるディレクトリを作成</b>する。</p>
+<p>デフォルトで作成されている ROOT フォルダの内容を参照する（ただし、classesフォルダは作成されていない）。</p>
+
+<h3>Step 2. クラス登録ファイル（web.xml）の作成</h3>
+<p>利用するサーブレットのクラスや名前を設定する、web.xml と名付けられるの XML 形式のテキストファイルを以下の様に作成し、WEB-INF ディレクトリ下に配備する。（&lt;!-- と　--&gt; に囲まれた部分はコメントであり、システムからは読み飛ばされる）</p>
+
+<pre class="SourceCode">&lt;?xml version=&quot;1.0&quot; encoding=&quot;ISO-8859-1&quot;?&gt;
+&lt;web-app xmlns=&quot;http://java.sun.com/xml/ns/javaee&quot;
+xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+xsi:schemaLocation=&quot;http://java.sun.com/xml/ns/javaee
+http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd&quot; version=&quot;2.5&quot;&gt;
+	&lt;display-name&gt;<span class="innerCaution">初めてのサーブレット</span>&lt;/display-name&gt;
+	&lt;description&gt;<span class="innerCaution">サーブレットを初めて実装するためのサンプルプログラム</span>&lt;/description&gt;     
+	&lt;servlet&gt;
+		&lt;servlet-name&gt;<span class="innerCaution">MyFormReceiver</span>&lt;/servlet-name&gt; &lt;!-- web.xml内で使用するサーブレット名（任意に設定可能） --&gt;
+		&lt;servlet-class&gt;<span class="innerCaution">FormReceiver</span>&lt;/servlet-class&gt; &lt;!-- 呼び出すサーブレットのクラス名（パッケージを用いている場合には、そのパッケージ名も付記する） --&gt;
+	&lt;/servlet&gt;     
+       &lt;servlet-mapping&gt;        
+		&lt;servlet-name&gt;<span class="innerCaution">MyFormReceiver</span>&lt;/servlet-name&gt; &lt;!-- サーブレットの名前（&lt;servlet&gt;内の&lt;servlet-name&gt;に対応） --&gt;
+		&lt;url-pattern&gt;<span class="innerCaution">/Form</span>&lt;/url-pattern&gt;  &lt;!-- ブラウザで指定するURL（のマッチ条件）必ず、／から始まる！ --&gt;
+       &lt;/servlet-mapping&gt;
+&lt;/web-app&gt;
+</pre>
+<p>上記は、サーブレットのプログラムを FormReceiver と名付けられるクラスで構築した場合の作成例である。</p>
+<p><a href="http://www.javadrive.jp/servlet/webxml/">＜＜Web アプリケーションの設定に関する詳細へのリンク＞＞</a></p>
+
+<h3>Step 3. サーブレットのクラス（例：FormReceiver.class）の配備</h3>
+
+<p>サーブレットの実行ファイル（.class のバイトコード）は、WEB-INF の下に作成した<b class="innerCaution">ディレクトリ classes の下に配置</b>する
+（ただし、ソースファイル（.java）はどの場所においても良い）。</p>
+<p>実行ファイルの作成は、通常のクラスと同様に javac でコンパイルするが、lib ディレクトリの下にあるサーブレットのライブラリ用のアーカイブ（servlet-api.jar）を読み込むために、以下の様にコンパイルを実行する（例：Tomcat のインストールディレクトリの直下に置かれている FormReceiver.java から作成する場合）</p>
+<pre class="CommandLine">
+javac -encoding UTF-8 -cp ./lib/servlet-api.jar FormReceiver.java
+</pre>
+<p class="Caution">eclipse でコンパイルする場合、プロジェクトを選択した状態で右ボタンを押して、「ビルドパスを構築」→ 「外部アーカイブを追加」を選択し、lib 下の servlet-api.jar を開く</p>
+
+<h3>Step 4. サーブレットを呼び出すクライアント（.html ファイル）の配備</h3>
+<p>Step 3. で作成したサーブレットを呼び出すための html ファイルを作成する（クライアントのファイルなので、配置場所は任意に選択できる）。</p>
+<p class="innerCaution">サーブレットが xml ファイルや jsp (JavaServer Pages) ファイルを使用する場合には、それらを webapps 下に新規に作成したディレクトリ下に配置する必要がある（上図参照）。
+</p>
+
+<h2>サーブレット・プログラムの作成</h2>
+
+<p>クライアントから送信されてくるテキストを受け取り、単純なメッセージを返す機構のプログラムを以下に示す。</p>
+
+<u><a name="FormReceiver.java">フォーム入力を受け取るサーブレットの作成例</a></u><!-- 実行確認済 -->
+<pre class="SourceCode">
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class FormReceiver extends <span class="innerCaution">HttpServlet</span> {
+
+   // GET リクエストを受け取った際に呼び出されるメソッドをオーバーライドする
+   public void doGet (HttpServletRequest <span class="innerCaution">request</span>, HttpServletResponse <span class="innerCaution">response</span>) throws ServletException {
+      try {
+         String tmp = <span class="innerCaution">request</span>.getParameter("message"); // 送信されたメッセージの取得
+         String msgStr = new String(tmp.getBytes("8859_1"), "UTF-8"); // 日本語を取得できる様にする
+
+         <span class="innerCaution">response</span>.setContentType("text/html; charset=UTF-8"); //コンテンツタイプの設定
+
+         //HTML文書の書き出し
+         PrintWriter <span class="innerCaution">pw</span> = <span class="innerCaution">response</span>.getWriter();
+         if(msgStr.length() != 0) {
+             <span class="innerCaution">pw</span>.println("&lt;html&gt;&lt;body&gt;&lt;center&gt;" + msgStr + "を受け取りました&lt;/center&gt;&lt;/body&gt;&lt;/html&gt;");
+         }
+         else { // フォームに入力が無かった場合
+             <span class="innerCaution">pw</span>.println("&lt;html&gt;&lt;body&gt;&lt;center&gt;&lt;h2&gt;エラー&lt;/h2&gt;テキストを入力してください&lt;/center&gt;&lt;/body&gt;&lt;/html&gt;");
+         }
+       }
+       catch(Exception e){
+          e.printStackTrace();
+       }
+   } 
+}
+</pre>
+
+<ul class="Point">
+<li>サーブレットの実装には、HttpServlet クラスを継承する</li>
+<li>サーブレットの実装には、少なくとも以下に挙げられている１つのメソッドをオーバーライドする必要がある</li>
+<ul>
+<li>doGet：URI で識別される (エンティティ形式の) 情報を取得する</li>
+<ul>
+<li>最も頻繁に使用されるメソッド</li>
+<li>HTML文書や画像ファイル等の取得</li>
+<li>CGI等によって生成されたリソース</li>
+</ul>
+<li>doPost：URI で識別されるリソースに対して、リクエストに同封されるエンティティを送信する</li>
+<ul>
+<li>掲示板、ニュースグループ、メーリングリスト等へのメッセージの投稿</li>
+<li>データベースに対する追加操作</li>
+<li>既存リソースへの注釈</li>
+</ul>
+<li>doPut：ローカルにあるファイルをサーバに転送する</li>
+<ul>
+<li>POSTでは URI は「リクエストを処理する場所」を指すが、PUTでは「リソースが生成される場所」を指す</li>
+<li>セキュリティの観点から、GETやPOSTほど広くは利用されない</li>
+</ul>
+<li>doDelete：URI で指定したリソースを削除</li>
+</ul>
+</li>
+</ul>
+<p class="Caution">上記のメソッド群を簡単にまとめると、URI で指定したリソース対して、GET（取得）、POST （新規作成）、PUT（更新）、DELETE（削除）するものであり、GET はリソースに副作用を与えない。</p>
+<h2>サーブレットを呼び出す HTML ファイルの作成</h2>
+<p>サーブレットが html ファイルから変数の値を添えて呼び出され、サーブレット内での計算結果を同じ html ファイルに返す処理は以下の流れとなる。</p>
+<ul>
+<li>html の対話部品（form タグ）からサーブレットを（form タグ内の action="..." で URI を指定して）呼び出す</li>
+<li>サーブレットは html で設定された変数を引数 HttpServletRequest request で受け取る</li>
+<li>サーブレット内での処理結果を、引数 HttpServletResponse response に格納して呼び出し元の html に返して表示する</li>
+</ul>
+<u>サーブレット（FromReceiver）を実行するための html ファイル</u><!-- 実行確認済 -->
+<pre class="SourceCode">
+&lt;html&gt;
+&lt;head&gt;<br />&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot; /&gt;<br />&lt;/head&gt;
+&lt;body&gt;&lt;center&gt;
+&lt;h2&gt;入力フォーム&lt;/h2&gt;
+&lt;hr/&gt;
+テキストを入力して送信ボタンを押して下さい&lt;br/&gt;&lt;br/&gt;
+&lt;form action=&quot;http://localhost:8080/<span class="innerCaution">MyServlet/Form</span>&quot; method=&quot;GET&quot;&gt;
+&lt;!-- http://localhost:8080/<span class="innerCaution">webapps下で作成したフォルダの名称に引き続き&lt;pattern-url&gt;で指定されたURLのマッチ条件</span> --&gt;
+&lt;input type="text" name="message"/&gt; &lt;!-- 送信するメッセージを入力する領域 --&gt;
+&lt;input type="submit" value="送信"/&gt; &lt;!-- 送信を実行するボタン --&gt;
+&lt;/form&gt;
+&lt;/center&gt;&lt;/body&gt;&lt;/html&gt;
+</pre>
+<p class="Caution">上記のURL指定は、MyServlet という名前のフォルダを webapps 下に作成し、web.xml 内の &lt;url-pattern&gt;内を
+/Form と指定した場合に相当する。<br />
+HTML文書での入力フォームの作成に関しては<a href="http://www.w3schools.com/html/html_forms.asp">
+こちら</a>を参照する事。</p>
+<h2>サーブレットの実行</h2>
+<p>サーブレットを実際に実行させるには、サーブレットを実行するサーバーを起動する必要がある。</p>
+<ol class="Point">
+<li>ターミナルを用いて、Tomcat インストール・ディレクトリの下の bin ディレクトリにある startup.sh プログラムを実行する。<br/>
+実行例：
+<pre class="CommandLine">
+cd apache-tomcat-8.0.28
+./bin/startup.sh
+</pre>
+</li>
+<li>サーブレットを呼び出す html ファイルをブラウザで読み込む（当該 html ファイルを単にクリックしても良い）。</li>
+<li>サーブレットのプログラム（.class）や設定ファイル（web.xml）を更新した際には、ターミナルを用いて以下の要領で再起動（終了＋起動）を実行する。</li>
+<pre class="CommandLine">
+./bin/shutdown.sh
+./bin/startup.sh
+</pre>
+<span class="innerCaution">.html のみを更新した際には、上記の再起動は不要である。</span>
+</ol>
+
+<h1>セッション管理</h1>
+<p>Webサイトを構築する際には、サイトを訪問するユーザを個別に管理する必要がある。サーブレットでは、セッションという仕組みを導入してユーザを管理できる。</p>
+
+<u>セッション管理のプログラム例</u><!-- 実行確認済 -->
+<pre class="SourceCode">
+import java.util.*;
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class SessionManager extends HttpServlet {
+   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException {
+      try {
+         <span class="innerCaution">HttpSession hs = request.getSession(true);</span>	//セッションの取得
+         Integer cn = (Integer) <span class="innerCaution">hs.getAttribute("count");</span> //セッションに設定されている属性値 count の値の取得
+         Date dt = (Date) <span class="innerCaution">hs.getAttribute("date");</span> //セッションに設定されている属性値 date の値の取得
+
+         String str1, str2;
+         if (cn == null) { // count の属性値が設定されていない（始めて呼び出された）場合
+            cn = new Integer(1);
+            dt = new Date();
+            str1 = "はじめまして。";
+            str2 = "";
+         }
+         else { // count の属性値が設定されている（一度は呼び出された）場合
+            cn = new Integer(cn.intValue() + 1);
+            str1 = cn + "回目のおこしですね。";
+            dt = new Date();
+            str2 = "（前回：" + dt + ")";
+         }
+     
+         <span class="innerCaution">hs.setAttribute("count", cn);</span> // セッションに属性値 count の値を設定
+         <span class="innerCaution">hs.setAttribute("date", dt);</span> // セッションに属性値 date の値を設定
+
+         //コンテンツタイプの設定
+         response.setContentType("text/html; charset=UTF-8");
+
+         //HTML文書の書き出し
+         PrintWriter pw = response.getWriter();
+         pw.println("&lt;html&gt;&lt;body&gt;&lt;center&gt;&lt;h2&gt;ようこそ&lt;/h2&gt;&lt;hr /&gt;" +
+                    str1 + "&lt;br/&gt;" +
+                    str2 + "&lt;br/&gt;" +
+                    "&lt;/center&gt;&lt;/body&gt;&lt;/html&gt;");
+        }
+        catch(Exception e){    
+          e.printStackTrace();
+       }
+   } 
+}
+</pre>
+
+<h1>フィルタ（Filter）の使用</h1>
+<p>リクエストを受け付けてサーブレットで処理をする前後に指定した処理を実行させる、Filter と呼ばれる機能が利用できる。</p>
+<p>このフィルタを利用するには、実行環境を設定する web.xml ファイルに、以下の例の様に登録する必要がある。</p>
+<u>web.xml 内でのフィルタの登録例</u><!-- 実行確認済 -->
+<pre class="SourceCode">
+	...
+    &lt;filter&gt;
+        &lt;filter-name&gt;<span class="innerCaution">MyFilter</span>&lt;/filter-name&gt; &lt;!-- web.xml 内で使用するフィルタ名 --&gt;
+        &lt;filter-class&gt;<span class="innerCaution">SampleFilter</span>&lt;/filter-class&gt; &lt;!-- フィルタを実装したクラス名 --&gt;
+    &lt;/filter&gt; 
+    &lt;filter-mapping&gt;
+        &lt;filter-name&gt;<span class="innerCaution">MyFilter</span>&lt;/filter-name&gt; &lt;!-- 呼び出すフィルタ名 --&gt;
+        &lt;url-pattern&gt;<span class="innerCaution">/Form</span>&lt;/url-pattern&gt; &lt;!-- フィルタが実行される URL のマッチ条件 --&gt;
+    &lt;/filter-mapping&gt;
+...</pre>
+
+<p>以下にフィルタの作成例と、フィルタが実行されるサーブレットの作成例を示す</p>
+
+<u>サーブレットの呼び出しの前後に処理される Filter プログラム</u><!-- 実行確認済 -->
+<pre class="SourceCode">
+import java.util.*;
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class SampleFilter implements Filter {
+
+   public void doFilter(ServletRequest request, ServletResponse response, <span class="innerCaution">FilterChain chain</span>) throws IOException, ServletException {
+      response.setContentType("text/html; charset=UTF-8"); //コンテンツタイプの設定
+
+      // HTML文書の書き出し
+      PrintWriter pw = response.getWriter();
+      pw.println("&lt;html&gt;&lt;body&gt;&lt;center&gt;&lt;h2&gt;こんにちは&lt;/h2&gt;&lt;hr/&gt;"); // サーブレットの処理前に呼び出される
+
+      <span class="innerCaution">chain.doFilter(request, response);</span> // ここで、web.xml に登録されている次のフィルタか、次が無ければサーブレットの処理が呼び出される
+
+      pw.println("&lt;hr/&gt;ありがとうございました。&lt;/center&gt;&lt;/body&gt;&lt;/html&gt;"); // サーブレットの処理後に呼び出される
+   }
+   public void init(FilterConfig filterConfig) {}
+   public void destroy() {} 
+}
+</pre>
+
+<p><a href="http://www.javaroad.jp/servletjsp/sj_servlet10.htm">＜＜フィルタに関する詳細へのリンク＞＞</a></p>
+
+<div class="Exercise">
+<h4>練習問題</h4>
+<p>
+サーブレット FormReceiver から上記のフィルタ SampleFilter を呼び出してみる。ただし、FormReceiver.java 内の
+<pre class="SourceCode">
+   if(msgStr.length() != 0) {
+       pw.println("&lt;html&gt;&lt;body&gt;&lt;center&gt;" + msgStr + "を受け取りました&lt;/center&gt;&lt;/body&gt;&lt;/html&gt;");
+   }
+   else { // フォームに入力が無かった場合
+       pw.println("&lt;html&gt;&lt;body&gt;&lt;center&gt;&lt;h2&gt;エラー&lt;/h2&gt;" +
+                  "テキストを入力してください&lt;/center&gt;&lt;/body&gt;&lt;/html&gt;");
+   }
+</pre>
+の部分は、
+<pre class="SourceCode">
+   if(msgStr.length() != 0) {
+       pw.println("&lt;center&gt;" + msgStr + "を受け取りました&lt;/center&gt;);
+   }
+   else { // フォームに入力が無かった場合
+       pw.println("&lt;center&gt;&lt;h2&gt;エラー&lt;/h2&gt;" +
+                  "テキストを入力してください&lt;/center&gt;");
+   }
+</pre>
+に置き換える（その理由は、各自で考える）。
+</p>
+</div>
+
+<br /><br />
+
+<h1>認証の要求</h1>
+<p>設定ファイル web.xml の編集により Web ページへのアクセスを制限できる。</p>
+<pre class="SourceCode">
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;ISO-8859-1&quot;?&gt;
+&lt;web-app ...&gt;
+...
+   &lt;security-constraint&gt;
+       &lt;web-resource-collection&gt; 
+         &lt;web-resource-name&gt;<span class="innerCaution">ReqAuthentification</span>&lt;web-resource-name&gt;  
+        &lt;url-pattern&gt;/ReqAuthentification&lt;/url-pattern&gt; &lt;!--  制限するURLのマッチ条件 --&gt;
+      &lt;/web-resource-collection&gt; 
+      &lt;auth-constraint&gt; 
+         &lt;role-name&gt;admin&lt;/role-name&gt; &lt;!-- 認証を許可する名前 --&gt;
+      &lt;/auth-constraint&gt; 
+   &lt;/security-constraint&gt; 
+   &lt;login-config&gt; 
+      &lt;auth-method&gt;BASIC&lt;/auth-method&gt; &lt;!-- 認証方法--&gt;
+   &lt;/login-config&gt; 
+   &lt;security-role&gt; 
+      &lt;role-name&gt;admin&lt;/role-name&gt;  &lt;!-- 認証を許可する名前 --&gt;
+   &lt;/security-role&gt;
+...
+&lt;/web-app&gt;
+</pre>
+
+<u>認証を呼び出すサーブレットの例</u>
+<pre class="SourceCode">
+import java.util.*;
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class <span class="innerCaution">ReqAuthentification</span> extends HttpServlet {
+   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException {
+      try{
+         //コンテンツタイプの設定
+         response.setContentType("text/html; charset=Shift_JIS");
+
+         //HTML文書の書き出し
+         PrintWriter pw = response.getWriter();
+         pw.println("&lt;html&gt;&lt;body&gt;&lt;center&gt;¥n" +
+                    "&lt;h2&gt;おめでとうございます。&lt;/h2&gt;¥n" +
+                    "&lt;hr/&gt;認証に成功しました。&lt;br /&gt;&lt;/center&gt;&lt;/body&gt;&lt;/html&gt;¥n");
+       }
+       catch(Exception e){    
+          e.printStackTrace();
+       }
+   } 
+}
+</pre>
+<p>
+認証の際に用いられるユーザ名とパスワードは、conf フォルダにある、tomcat-users.xml を編集する。
+</p>
+<u>tomcat-users.xml の設定例</u>
+<pre class="SourceCode">
+&lt;tomcat-users&gt;
+&lt;role rolename=&quot;admin&quot;/&gt;
+&lt;role rolename=&quot;user&quot;/&gt;
+&lt;user username=&quot;cat&quot; password=&quot;tomcat&quot; roles=&quot;admin&quot;/&gt;
+&lt;user username=&quot;dog&quot; password=&quot;tomcat&quot; roles=&quot;admin,user&quot;/&gt;
+&lt;/tomcat-users&gt; 
+</pre>
+
+<h1>JSP（サーブレットプログラムの簡略な作成方法）</h1>
+<h2>JSP（JavaServer Pages）</h2>
+<p>サーブレットの出力結果を Web ページとして表示するために、上記の例では pw.println で HTML 文章を出力したが、Java プログラムと HTML の記述が混在しているので、記述量の増加に伴いプログラム読み難くなってしまう。したがって、HTML 文章の中に Java のコードを埋め込むために、JSP (JavaServer Pages）と呼ばれる Web サーバ上のプログラム開発環境が用意されている。<br />
+<p><a href="http://www.javadrive.jp/servlet/jsp/">＜＜JSP の基本知識へのリンク＞＞</a></p></p>
+
+<p>まず最初に、HTML のフォームから JSP を呼び出すプログラムの作成例を示す。</p>
+<u>JSPTest.html</u><!-- 実行確認済 -->
+<pre class="SourceCode">
+&lt;html&gt;
+&lt;head&gt; &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot; /&gt; &lt;title&gt; JSP サンプル&lt;/title&gt; &lt;/head&gt;
+&lt;body&gt;&lt;center&gt;
+&lt;h2&gt;ようこそ&lt;/h2&gt;
+&lt;hr/&gt;
+お選びください。&lt;br/&gt; &lt;br/&gt;
+&lt;form action=&quot;http://localhost:8080/<span class="innerCaution">myJSP/JSPSample.jsp</span>&quot; method=&quot;GET&quot;&gt;
+&lt;input type=&quot;text&quot; name=&quot;<span class="innerCaution">cars</span>&quot;/&gt;
+&lt;input type=&quot;submit&quot; value=&quot;送信&quot;/&gt;
+&lt;/form&gt;
+&lt;/center&gt;&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+
+<p>次に、上記のHTML から呼び出され、フォームに入力されたデータを表示する jsp のプログラム作成例を示す（<b class="innerCaution">ただし、このファイルは myJSP と名付けられたディレクトリ下に置かれている</b>ものとする）。</p>
+<u>JSPSample.jsp</u><!-- 実行確認済 -->
+<pre class="SourceCode">&lt;%@ page contentType=&quot;text/html; charset=UTF-8&quot; %&gt;
+&lt;%
+    String tmp = request.getParameter(&quot;<span class="innerCaution">cars</span>&quot;); 
+    String <span class="innerCaution">carname</span> = new String(tmp.getBytes(&quot;8859_1&quot;), &quot;UTF-8&quot;); 
+%&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;&lt;%= <span class="innerCaution">carname</span> %&gt;&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;center&gt;
+&lt;h2&gt;&lt;%= <span class="innerCaution">carname</span> %&gt;&lt;/h2&gt;
+&lt;%= <span class="innerCaution">carname</span> %&gt;
+のお買い上げありがとうございました。&lt;br/&gt;
+&lt;/center&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+
+<ul class="Point">
+<li>JSP のプログラムは拡張子に .jsp を付け、コンパイルする必要が無い
+  <ul>
+    <li>JSP のコードは最初に実行された際に、サーブレットのコードに自動的に変換される</li>
+  </ul>
+</li>
+<li>JSP では、HTML 文章内に Java のソースコードを埋め込む事ができる
+  <ul>
+    <li>Java のコードを埋め込む部分は、&lt;% で始まり %> で終わる</li>
+    <li>&lt;jsp: Java のコード /&gt; という書式でも良い</li>
+  </ul>
+</li>
+<li>HTML 文書内に Java の式を埋め込む際には、&lt;%= と　%> で囲む</li>
+</ul>
+<p><a href="http://www.javaroad.jp/servletjsp/sj_jsp1.htm">＜＜JSP の詳細に関するリンク＞＞</a></p>
+
+<br/><br/>
+<div id="Exercise" class="Exercise">
+<h4>課題６．サーブレットを用いたデータベース検索</h4>
+<p>
+<a href="./framework.html#Exercise">課題２</a>で作成したクラスで car.csv を読み込み、２個の検索条件と論理条件（AND または OR）を HTML のフォームで指定して、その検索結果を一覧表の形式（できれば、table タグ等を用いる）で表示する機能を実装する（ただし、JSP を用いて開発しても良い）。<br />
+
+<p class="Caution">今回の課題は、自席の計算機でプログラムを実際に動作させる事で課題提出とする（ただし、ソースプログラム（*.java）のみを Moodle で提出する）。</p>
+<font size="+2">
+<a href="car.html">HTMLフォームの実装例</a>
+</font>
+<br><br>
+<p>
+    <b>【オプション：時間に余裕がある人は挑戦しよう！】</b><br />
+サーブレット（または、jsp）を用いたWebアプリケーションを開発する。テーマは機能は自由に設定する。優秀と認められた作品は、最終回の講義でデモンストレーションをお願いすることがある。<b class="innerCaution">この自由課題に挑戦した人は、上記課題の提出は免除される。</b>提出は同様に、自席の計算機でプログラムを実際に動作させ、ソースコードのみを Moodle で提出する。
+</div>
+<br />
+
+<h2>補足：JavaBeans</h2>
+<p>JavaBeans とは、Eclipse 等の開発ツールや Tomacat 等の Web コンテナが事前知識無しで扱える、ソフトウェア・コンポーネントであり、
+普通のクラスとは違って、以下の規約に従う様に設計されたクラスを指す。</p>
+
+<h4>JavaBeans 作成時の要件</h4>
+<ul class="Point">
+<li>引数なしのpublicコンストラクタでオブジェクトを生成できる</li>
+<li>必要に応じて「プロパティ」「イベント」「メソッド」を備える
+  <ul>
+    <li>イベントとメソッドは主として GUI 開発に用いられる</li>
+    <li>プロパティとは、フィールドを private 宣言して、アクセッサ（setter, getter）によりカプセル化したもの</li>
+    <li>getter は、public &lt;プロパティの型&gt; get&lt;プロパティの名前&gt; () で定義する</li>
+    <li>setter は、public void set&lt;プロパティの名前&gt; (&lt;プロパティの型&gt; ＜引数の名前＞) で定義する</li>
+  </ul>
+</li>
+<li>必要に応じて「Serializable」インターフェイスを実装する</li>
+<li>必ず何らかのパッケージにまとめる</li>
+</ul>
+<p class="innerCaution">第３回で学んだ Swing も JavaBeans コンポーネントの一種である。</p>
+<u>JavaBeans の実装例</u>
+<pre class="SourceCode">
+package mybeans;
+import java.io.*;
+
+public class CarBean implements Serializable {
+   private String carname; // プロパティ
+   private String cardata; // プロパティ
+
+   public CarBean() {
+      carname = null;
+      cardata = null;
+   }
+   // setter メソッド
+   public void setCarname(String cn)　{
+      carname = cn;
+   }
+    // getter メソッド
+   public String getCardata()　{
+      return cardata;
+   }
+   public void makeCardata()　{
+      cardata = "車種:" + carname;
+   }
+}
+</pre>
+<p>上記の JavaBeans に値を設定するサーブレットの作成例と、そこからデータを受け取る JSP の作成例を以下に示す。</p>
+
+<u>JavaBeans に値を設定するサーブレット</u>
+<pre class="SourceCode">
+import mybeans.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class CarBeanServlet extends HttpServlet {
+   public void doGet(HttpServletRequest request, HttpServletResponse response)
+   throws ServletException {
+      try {
+         //フォームデータの取得
+         String tmp = request.getParameter("cars");
+         String carname = new String(tmp.getBytes("8859_1"), "JISAutoDetect");
+
+         //Beanの作成
+         CarBean cb = new CarBean();
+         cb.setCarname(carname);
+         cb.makeCardata();
+
+         //リクエストに設定
+         request.setAttribute("cb", cb);
+
+         //サーブレットコンテキストの取得
+         ServletContext sc = getServletContext();
+
+         //リクエストの転送
+         if(carname.length() != 0) {
+            sc.getRequestDispatcher("/CarBeans.jsp").forward(request, response);
+         }
+         else{
+            sc.getRequestDispatcher("/error.html").forward(request, response);
+         }
+      }
+      catch(Exception e){    
+         e.printStackTrace();
+      } 
+   } 
+}
+</pre>
+
+<u>JavaBeans からデータを受け取る JSP（CarBeans.jsp）</u>
+<pre class="SourceCode">&lt;%@ page contentType=&quot;text/html; charset=Shift_JIS&quot; %&gt;
+&lt;jsp:useBean id=&quot;cb&quot; class=&quot;mybeans.CarBean&quot; scope=&quot;request&quot;/&gt; 
+&lt;html&gt;&lt;head&gt; &lt;title&gt;サンプル&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;&lt;center&gt;&lt;h2&gt;御礼&lt;/h2&gt;
+&lt;jsp:getProperty name=&quot;cb&quot; property=&quot;cardata&quot;/&gt; のお買い上げありがとうございました。&lt;br/&gt;
+&lt;/center&gt;&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+<!--
+<h3>MVC2 に基づくソフトウェア設計モデル</h3>
+<p>
+MVC2とは、Webアプリケーションの構成要素を Model-View-Controller の３種の部品に分けて開発するモデルであり、
+データ保持、DBの接続・操作などを担う Model は、JavaBeansにより実装され、リクエストに対する実行結果の表示を担う View はJSPにより実装されて、
+Model と連携してデータの取得や更新を行う。さらに、プログラムの制御を担う Controller はサーブレットにより実装され、リクエストにより適切な
+Model と View を呼び出して処理を実行する。つまり、全リクエストはまず Controller で受けてから、適切な Model と View が呼び出される。
+</p>
+<p><a href="http://www.javaroad.jp/servletjsp/sj_basic1.htm">＜＜MVC2による開発モデルの詳細へのリンク＞＞</a></p>
+-->
+</div>
+</body>
+</html>

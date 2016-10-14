@@ -1,0 +1,29 @@
+.SourceCode {
+	border:2px solid #CCC;
+	margin-left:30px;
+	/* background:#FFF4D5; */
+}
+.CommandLine {
+	background-color: #DDD;
+	margin-left: 30px;
+}
+.Caution {
+    margin-left:30px;
+    color: #C00;
+}
+.innerCaution {
+	color: #C00;
+}
+.Point {
+	border:2px solid #6FF;
+	margin-left:30px;
+	color:#00F;
+	font-size:larger;
+	/* background-color:#CFE8EF; */
+}
+.Exercise {
+    margin-left:30px;
+    border:2px solid #C6F;
+    color: #609;
+    font-size:larger;
+}

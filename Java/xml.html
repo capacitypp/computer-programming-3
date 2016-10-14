@@ -1,0 +1,276 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>XML データの処理</title>
+<link rel="stylesheet" href="common.css" type="text/css" />
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+<div id="main">
+<h1>XML データの処理</h1>
+<p>XMLやHTMLで記述された文章を構造化されたデータとして扱うために、Document Object Model (DOM) と呼ばれる API(Application Programming Interface)が規定されている。
+</p>
+<p>DOM は木構造で表される<a href="http://www.ajaxtower.jp/js/dom/index2.html">階層構造</a>を有し、XMLやHTMLで&lt; &gt;で囲まれたタグは要素（Element）オブジェクトと呼ばれ、このタグの開始と終了で挟まれた部分はテキスト（Text）オブジェクトと呼ばれる。また、Element と Text のオブジェクトは共にノード（Node)
+と呼ばれ、木構造の中を辿っていく事により、個々のオブジェクトの値が参照される
+（<a href="http://www.atmarkit.co.jp/fxml/rensai/rexml11/rexml11.html">詳細はこちら</a>）。
+<h2>XML データの基礎</h2>
+<u>XML を用いた階層的データの記述例（sample.xml）</u>
+<pre class="SourceCode">
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;Shift_JIS&quot; ?&gt;<br />	&lt;cars&gt;
+		&lt;car id=&quot;1001&quot; country=&quot;日本&quot;&gt;
+			&lt;name&gt;乗用車&lt;/name&gt;
+			&lt;price&gt;150&lt;/price&gt;
+			&lt;description&gt;5人まで乗車することができます。&lt;em&gt;家族用&lt;/em&gt;の車です。&lt;/description&gt;
+			&lt;img file=&quot;car1.jpg&quot;/&gt;
+		&lt;/car&gt;
+		&lt;car id=&quot;2001&quot; country=&quot;日本&quot;&gt;
+			&lt;name&gt;トラック&lt;/name&gt;
+			&lt;price&gt;500&lt;/price&gt;
+			&lt;description&gt;&lt;em&gt;荷物の運搬&lt;/em&gt;にご利用できます。&lt;em&gt;業務用&lt;/em&gt;の車です。&lt;/description&gt;
+			&lt;img file=&quot;car2.jpg&quot;/&gt;
+		&lt;/car&gt;
+		&lt;car id=&quot;1005&quot; country=&quot;USA&quot;&gt;
+			&lt;name&gt;オープンカー&lt;/name&gt;
+			&lt;price&gt;200&lt;/price&gt;
+			&lt;description&gt;晴天時には天窓を開閉できます。&lt;em&gt;レジャー用&lt;/em&gt;に最適です。&lt;/description&gt;
+			&lt;img file=&quot;car3.jpg&quot;/&gt;
+		&lt;/car&gt;
+	&lt;/cars&gt;
+</pre>
+<p>
+以上の文書では、cars, car, name, description, em, img は Element オブジェクトであり、「乗用車」，「150」，「5人まで乗車することができます。」等は Text オブジェクトである。また、「1001」、「日本」等は、car Element の属性（Attribute）として位置づけられる。
+<span class="innerCaution">注：属性（Attribute）は、ノード（Node）では無い！</span>
+</p>
+
+<p>上記の XML データファイル (<a href="./sample.xml">sample.xml</a>) を読み込み、その内容を他のテキストファイル（result.xml）に書き出すプログラムの構築例を示す。</p>
+<u>XML ファイルの読み書きの例</u><!-- 実行後確認済み -->
+<pre class="SourceCode">
+import java.io.*;
+import javax.xml.parsers.*;
+import javax.xml.transform.*;
+import javax.xml.transform.stream.*;
+import javax.xml.transform.dom.*;
+import org.w3c.dom.*;
+
+public class XMLRWTest {
+
+   public static void main(String[] args) throws Exception {
+      // DOM 作成の準備をする
+      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance(); // DocumentBuilder のための工場を生成
+      DocumentBuilder db = dbf.newDocumentBuilder();
+
+      // XML文書を読み込んで、DOM 型のドキュメントを返す
+      Document doc = db.parse(new FileInputStream("sample.xml"));
+
+      // 文書を書き出す
+      TransformerFactory tff = TransformerFactory.newInstance(); // TransformerFactory のための工場を生成
+      Transformer tf = tff.newTransformer(); // 文書の変換器を生成
+      tf.setOutputProperty(OutputKeys.ENCODING, "UTF-8"); // 変換時の文字コードを設定
+      tf.transform(new DOMSource(doc), new StreamResult("result.xml")); // 変換元のホルダーと、出力先のホルダーを引数として渡す
+      System.out.println("result.xmlに出力しました。");
+   }
+}
+</pre>
+
+<ul class="Point">
+<li>文章の生成には工場となるクラスを介して生成器のインスタンスを得る（<a href="http://itpro.nikkeibp.co.jp/article/COLUMN/20051202/225609/?ST=develop">工場という抽象化が必要な理由の解説はこちら</a>）</li>
+<ul>
+<li>工場の DocumentBuilderFactory は、XML パーサ（文字列を解析して変換するオブジェクト）を生成する</li>
+<li>生成する XML パーサの詳細な仕様は、DocumentBuilderFactory のメソッドを介して指定できる（上記のプログラムでは未使用）</li>
+</ul>
+<li>メモリ内に保持されている DOM のデータをファイル出力するためには Transformer クラスを使用する（これも、工場クラスから生成される）</li>
+<li>Transformer クラスを利用する際には、変換元は Source クラス、変換先は Result クラス（共にインタフェース）を継承するクラスとする</li>
+</ul>
+
+<p>次に、カンマ区切り CSV（Comma-Separated Values）で記述されたテキストファイル（sample.csv）を読み込み、対応する XML を構築してファイル（result.xml）に出力するプログラム例を示す。</p>
+<u>CSV ファイルの例（<a href="./sample.csv">sample.csv</a>）</u>
+<pre class="SourceCode">
+品名,価格,色
+乗用車,150,白
+トラック,500,紺
+オープンカー,200,黄
+</pre>
+<u>CSV 形式から XML 形式への変換例</u><!-- 実行後確認済み -->
+<pre class="SourceCode">
+import java.io.*;
+import java.util.*;
+import javax.xml.parsers.*;
+import javax.xml.transform.*;
+import javax.xml.transform.stream.*;
+import javax.xml.transform.dom.*;
+import org.w3c.dom.*;
+
+public class CSVtoXML {
+     public static void main(String[] args) throws Exception  { 
+      	//DOMの準備をする
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilder db = dbf.newDocumentBuilder(); 
+        Document doc = db.newDocument(); //文書を新規作成する 
+        Element root = doc.createElement(&quot;車リスト&quot;); //ルート要素を作成する
+        doc.appendChild(root);
+        BufferedReader br = new BufferedReader(new FileReader(&quot;sample.csv&quot;)); // CSV文書の準備をする 
+        // CSV文書のタイトル行を保存する      
+        ArrayList&lt;String&gt; colname = new ArrayList&lt;String&gt;();       
+        String line = br.readLine();
+        StringTokenizer stt = new StringTokenizer(line, &quot;,&quot;);      
+        while(stt.hasMoreTokens()){          
+            colname.add(stt.nextToken());
+        }
+        // CSV文書を変換する       
+        while((line = br.readLine()) != null){
+            StringTokenizer std = new StringTokenizer(line, &quot;,&quot;);          
+            Element car = doc.createElement(&quot;車&quot;);          
+            root.appendChild(car);          
+            for(int i=0; i&lt;colname.size(); i++){             
+                Element elm = doc.createElement((String)colname.get(i));             
+                Text txt = doc.createTextNode(std.nextToken());             
+                elm.appendChild(txt);             
+                car.appendChild(elm);          
+            }       
+        }
+        br.close();
+        //文書を書き出す       
+        TransformerFactory tff = TransformerFactory.newInstance();       
+        Transformer tf = tff.newTransformer();       
+        tf.setOutputProperty(OutputKeys.ENCODING, &quot;UTF-8&quot;);       
+        tf.transform(new DOMSource(doc), new StreamResult(&quot;result.xml&quot;));       
+        System.out.println(&quot;result.xmlに出力しました。&quot;);    
+    } 
+}
+</pre>
+<p class="Caution">コンパイルの際には、文字コード指定</p>
+<pre class="CommandLine">javac -encoding UTF-8 CSVtoXML.java</pre>
+<p class="Caution">が必要。</p>
+<u>上記のプログラムの出力結果</u>
+<pre class="SourceCode">
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;
+&lt;車リスト&gt;
+	&lt;車&gt;
+		&lt;品名&gt;乗用車&lt;/品名&gt;
+		&lt;価格&gt;150&lt;/価格&gt;
+		&lt;色&gt;白&lt;/色&gt;
+	&lt;/車&gt;
+	&lt;車&gt;
+		&lt;品名&gt;トラック&lt;/品名&gt;
+		&lt;価格&gt;500&lt;/価格&gt;
+		&lt;色&gt;紺&lt;/色&gt;
+	&lt;/車&gt;
+	&lt;車&gt;
+		&lt;品名&gt;オープンカー&lt;/品名&gt;
+		&lt;価格&gt;200&lt;/価格&gt;
+		&lt;色&gt;黄&lt;/色&gt;
+	&lt;/車&gt;
+&lt;/車リスト&gt;
+</pre>
+<p class="Caution">実際の出力ファイルには、改行やインデントが存在しない点に注意せよ！</p>
+
+<p>参考サイト：<a href="http://www.dd.e-mansion.com/~kumada/laboratory/column/xml_dom.html">＜＜JavaとDOMによるXML文書の操作＞＞</a></p>
+<p class="Caution">XMLノードの生成・操作やドキュメント入出力には、パッケージの種類によって複数の方法が存在する。</p>
+
+<div class="Exercise">
+<h4>練習問題</h4>
+<p>上記の CSV から XML への変換プログラムを修正し、以下の形式の XML が出力される様にせよ</p>
+<pre>
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;
+&lt;車リスト&gt;
+	&lt;車 品名=&quot;乗用車&quot; 色=&quot;白&quot;&gt;
+		&lt;価格&gt;150&lt;/価格&gt;
+	&lt;/車&gt;
+	&lt;車 品名=&quot;トラック&quot; 色=&quot;紺&quot;&gt;
+		&lt;価格&gt;500&lt;/価格&gt;
+	&lt;/車&gt;
+	&lt;車 品名=&quot;オープンカー&quot; 色=&quot;黄&quot;&gt;
+		&lt;価格&gt;200&lt;/価格&gt;
+	&lt;/車&gt;
+&lt;/車リスト&gt;
+</pre>
+</div>
+
+<br />
+<p class="Caution">ヒント：属性値の登録方法</p>
+<pre class="SourceCode">
+Attr attribute = doc.createAttribute("AttributeName"); // 属性ノードの生成
+attribute.setValue(attributeValue); // 属性ノードに値を設定
+element.setAttributeNode(attributeNode); // 属性ノードを要素ノードに登録
+
+または、上記の３命令をまとめて、
+
+element.setAttribute("AttributeName", attributeValue);
+</pre>
+<br />
+
+<h1 id="Topic">Topic. JSON を用いたデータの軽量化</h1>
+<p>XMLはWebアプリケーションで普及したデータ記述形式であるが、XMLはデータの記述を属性とテキストノードに分けて使う必要があり、
+タグに基づく記述は必要とされるテキスト量が多い。これに対して、JSON（JavaScript Object Notation）と呼ばれるデータ形式は、
+その名の通り JavaScript のオブジェクト表記構文のサブセットであり、XML と比較すると簡潔にデータ構造を表現できるという利点がある。</p>
+<p>JSONは、以下の２種類の構造から構成される
+<ul>
+<li>キーと値の対で構成されるデータ構造。{ キー : 値 } の形式 <br />
+Java では Map フレームワークに相当し、レコード、辞書、ハッシュテーブル、キー付リスト、連想配列等に利用可能</li>
+<li>
+順序付きリスト。[ 要素１, 要素２，... 要素N ] の形式 <br/>
+Java の Collention フレームワークに相当し、配列、ベクトル、リスト、数列等に利用可能</li>
+</ul>
+例えば、上記のXML出力は以下の様に構成される。
+<pre>
+{ "車リスト" : 
+	[ {"品名" : "乗用車", "価格" : "150", "色" : "白"}, {"品名" : "トラック", "価格" : "500", "色" : "紺"}, {"品名" : "オープンカー", "価格" : "200", "色" : "黄"} ]
+}
+</pre>
+JSONの記述様式に関しては、<a href="http://www.json.org/">こちらを参考に</a>する。
+org.json パッケージの使い方は<a href="http://www.json.org/java/">こちらを参考にする</a>
+（JSONをサポートする <a href="./json.jar">Java のパッケージ</a>は、他にも多数存在する）
+</p>
+<p><a href="http://www.mkyong.com/java/json-simple-example-read-and-write-json/">＜＜JSONを扱う簡単なプログラム例のサイト＞＞</a></p>
+<br /><br />
+<div class="Exercise" id="Exercise">
+<h4>課題６．データのＸＭＬ変換</h4>
+<p>
+<a href="./collection.html#Exercise">課題３</a>で実装したプログラムを利用し、kinship.txt から読み込んだデータを
+以下の XML 形式で result.xml としてファイル出力するプログラムを作成する。</p>
+<pre class="SourceCode">
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;
+&lt;kinship&gt;
+&lt;person name=&quot;Christopher&quot;&gt;
+    &lt;relation type=&quot;father&quot;&gt;
+    	Arthur
+    &lt;/relation&gt;
+    &lt;relation type=&quot;father&quot;&gt;
+    	Victoria
+    &lt;/relation&gt;
+&lt;/person&gt;
+    ...
+&lt;person name=&quot;Marco&quot;&gt;
+    &lt;relation type=&quot;father&quot;&gt;
+    	Alfonso
+    &lt;/relation&gt;
+    &lt;relation type=&quot;father&quot;&gt;
+    	Sophia
+    &lt;/relation&gt;
+    &lt;relation type=&quot;son&quot;&gt;
+    	Pierro
+    &lt;/relation&gt;
+    &lt;relation type=&quot;son&quot;&gt;
+    	Francesca
+    &lt;/relation&gt;
+&lt;/person&gt;
+    ...
+&lt;/kinship&gt;
+</pre>
+<p>この形式は、各人物のノード person（名前を name 属性で指定）に対して、血縁関係にある人をその関係（type 属性）毎に relation ノード内に人物名を囲む。</p>
+<h4>オプション：時間に余裕のある人は実装する</h4>
+<p>
+kinship.txt から読み込んだデータを、上記 Topic で解説されている JSON にも変換できる様にプログラムを拡張する。ただし、JSON データの構造は独自に設計するものとし、プログラムを起動する際に xml か json を入力して変換方法を切り替える。また、json データの出力ファイル名は、result.txt とする。<br />
+<u>実行例（json データに変換する場合）：</u>
+<pre class="CommandLine">
+java DataConverter json
+</pre>
+</p>
+<p></p>
+</div>
+
+</div>
+</body>
+</html>

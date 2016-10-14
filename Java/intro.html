@@ -1,0 +1,370 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>導入</title>
+<link rel="stylesheet" href="common.css" type="text/css" />
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+<div id="main">
+
+<h1>本演習の進め方と採点方式</h1>
+
+<h2>演習の目的</h2>
+<ul style="font-size:larger">
+<li>演習を通じ、Java を用いたプログラムの開発能力を養う</li>
+<li>Java プログラムの代表的な機能の活用方法を修得する</li>
+</ul>
+
+<h2>演習の進め方と評価方法</h2>
+<ul style="font-size:larger">
+<li>サンプルコードを呈示しながら、要点を解説する
+  <ul>
+    <li>本テキスト中のサンプルコードは自由にコピー＆改竄して良いが、演習課題や練習問題での使用に限定する</li>
+  </ul>
+</li>
+<li>詳細はWebで検索するか、参考書で自主学習（予習）する
+  <ul>
+    <li>本テキスト中にも、要所にリンク先を示している</li>
+    <li>演習中の口頭での質問も大歓迎</li>
+    <li>メールでの質問も受け付けるが、まずは自力で調査する事！</li>
+  </ul>
+</li>
+<li>演習課題の提出物で成績を判定する（ただし、演習課題毎に異なる提出期限が設定される）</li>
+<li>演習課題の他に課す練習問題は提出の義務は無いが、自身の理解度を深めるために必要だと判断されれば解く事</li>
+<li>最終的に筆記試験を実施する</li>
+</ul>
+
+<h1>本テキストの様式</h1>
+<br/>
+<div class="SourceCode">
+ソースコードは、この枠に囲まれて記述される</div>
+<br/>
+<div class="Point">要点は、この枠に囲まれてこの書式で記述される</div>
+<br/>
+<div class="Caution">注意点は、この書式で記述される</div>
+<br/>
+<div class="CommandLine">ターミナル上でのコマンド入力や表示結果は、この書式で記述される</div>
+<br/>
+<div class="Exercise">演習課題と練習問題は、この枠に囲まれてこの書式で記述される</div>
+
+<br /><br />
+
+<h1>導入（Java の基礎）</h1>
+<h2>１．Java の特徴</h2>
+<h3>ソースコード、コンパイル、および実行</h3>
+<p>Ｃ言語やＣ＋＋では、ソースコードをコンパイルすると機械語が直接生成されるが、JavaではソースコードをコンパイルするとOSに依存しない中間コードが生成され、それらが各OS上に実装された仮想Javaマシン(JVM)によって各コンピュータで動作する機械語に変換される。
+</p>
+<img src="./image/execution.jpg" width="50%"/>
+<h3>階層的な実行環境と開発環境</h3>
+<p>Java では上記の実行環境(JVM)の他に各種のクラスライブラリ(API)が提供されており、それらを含む、プログラムを開発するための環境である Java Development Kit (JDK) が提供されている。
+<br />
+<img src="./image/environment.jpg" width="30%"/>
+<p>
+<a href="http://www.javaroad.jp/java_basic0.htm">＜＜Java の実行手順と構成に関する詳細な説明はこちら＞＞</a>
+</p>
+<br />
+
+<h2>２．Ｃ＋＋からの移行</h2>
+<p>以下に、Java とＣ＋＋との相違点と類似点をまとめる。
+<h3>相違点</h3>
+<ul class="Point">
+<li>ソースファイルは１種類 (.java) である
+  <ul>
+    <li>ヘッダ (.h) とソース (.c や .c++) の区別がない</li>
+    <li>ヘッダファイルの読み込み宣言(#include)も存在しない
+  </ul>
+<li>独立した関数という概念が無く、全ての手続きはクラス内で宣言されるメソッドとして実装される
+<li>全ての変数や式は何らかの型を持ち、基本型（プリミティブ型）と参照型に分類される
+<ul>
+<li>基本型はＣ言語の変数の型（char、short、int、long、float、double）に論理値（boolean）とバイト（byte）を加えたもの</li>
+<li>参照型は配列、クラス、インタフェースがあり、代入操作によってポインタがコピーされる（Ｃ＋＋の【参照】と類似の性質）
+</ul>
+<li>文字列は文字の配列では無く<a href="http://www.javaroad.jp/java_character2.htm">String クラス</a>が用いられる</li>
+<li>数値を扱う際には基本型以外に、<a href="http://www.javaroad.jp/java_number1.htm">数値クラス</a>（Byte、Short、Integer、Long、Float、Double、etc.）が存在する
+<li>メモリ管理が不要である
+  <ul>
+    <li>カベージ・コレクション（ゴミ集め）という機能がメモリ領域を監視して、使用されていない領域を自動的に解放する</li>
+    <li>Ｃ言語における free やＣ＋＋における delete に相当する、メモリ領域を解放するメソッド（機能）が提供されない</li>
+  </ul>
+</li>
+</ul>
+
+<h3>一致点</h3>
+<ul class="Point">
+<li>制御文（for, while, if else, switch）の書式</li>
+<li>演算子（算術、比較、条件、シフト、ビット、代入）の書式</li>
+<ul>
+<li>ただし、Ｃ＋＋では可能な operator による演算子の再定義はできない
+</li>
+</ul>
+<li>コメントの付け方（ただし、<a href="http://www.javaroad.jp/java_coment.htm">Java 特有のコメントの付け方</a>も存在する）</li>
+<li>フィールドやメソッドを静的な変数や関数として static 宣言できる</li>
+<li>Ｃ＋＋と同様の例外処理 try 〜 catch 〜 finally の書式</li>
+<ul>
+<li>標準的な例外クラスが提供されている</li>
+</ul>
+</ul>
+
+<h3>類似点</h3>
+<ul class="Point">
+<li>クラスの継承ができる</li>
+<ul>
+<li>ただし、多重継承は許されていない
+</ul>
+<li>フィールド（メンバ変数）やメソッドに対する公開や隠蔽をアクセス修飾子（public, protected, private）で設定できる</li>
+<ul>
+<li>ただし、各フィールドやメソッドに対して指定する</li>
+<li>private：同じクラス内のメソッドと、同じクラスのオブジェクト同士からのみアクセス可能</li>
+<li>省略した場合：同じパッケージ内のクラスからのみアクセス可能</li>
+<li>protected：同じパッケージ内のクラスと、そのサブクラスからのみアクセス可能。ただし、クラス宣言に対しては使用不可</li>
+<li>public：どこからでもアクセス可能</li>
+</ul>
+<li>Ｃ＋＋での略記宣言(namespace)と同等の機能が使用できる</li>
+<ul>
+<li>ただし、import というキーワードを用いる</li>
+</ul>
+</ul>
+
+<br />
+<h2>３．簡易なプログラムでの練習</h2>
+
+<h3>Hello world!</h3>
+<p>まず最初に、main 関数のみをメソッドとして含む最もシンプルなクラスを構築する。</p>
+
+<u>HelloWorld.java の内容：</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+public class HelloWorld {
+  public static void main(String[] args) {
+    System.out.println("Hello, world!");
+  }
+}
+</pre>
+
+<ul class="Point">
+<li>クラス名とファイル名は同一 (HelloWorld) でなければならない</li>
+<li>main 関数は公開(public)され、クラスに固有のメソッド(static)として構築する</li>
+<li>main 関数はクラス毎に設定できる
+  <ul>
+    <li>実行時に指定したクラスの main 関数が、最初に起動されるメソッドとして選択される</li>
+  </ul>
+<li>String は文字列を表す型である</li>
+<li>System.out.println では、System クラスの静的フィールド out（PrintStream クラスである）のメソッド println が呼び出されている</li>
+<li>文字列はダブルクオーテーション（”）で囲む（Ｃ言語と同じ） </li>
+</ul>
+
+<p class="Caution">
+static はＣ＋＋の静的変数や静的関数と同様の性質を有する（慣れないうちは、main 関数以外には用いない）</p>
+<h3>コンパイルと実行（ターミナルでの実行例）</h3>
+<p>まずターミナルを起動し、cd コマンドでソースコード（HelloWorld.java）が置かれているディレクトリ（フォルダ）に移動する</p>
+<pre class="CommandLine">
+javac HelloWorld.java　　　←　コンパイル
+java HellowWorld　　　　　 ← 実行
+Hello world!　　　　　　　　 ← 実行結果の出力
+</pre>
+
+<p class="Caution">ただし、日本語が含まれていて文字化けが原因でエラーが出力される場合は、</p>
+<pre class="CommandLine">
+javac -encoding UTF-8 HelloWorld.java
+</pre>
+<p class="Caution">とする（UTF-8 は実際にファイルに保存されているテキストの文字コード名に置換する）。</p>
+<p>
+また、実行時に文字化けが発生する場合は、以下の様なオプションで実行する。
+<pre class="CommandLine">
+java -Dfile.encoding=UTF8 HelloWorld
+</pre>
+</p>
+<p>
+これらの指定を恒常的に実行する環境は、以下の設定で構築できる。
+<ol>
+<li>自分のホームディレクトリのシェルファイル .bash_profile を開く（存在しない場合は、新規に作成する）。</li>
+<li>以下の２行を追加する。
+<pre class="SourceCode">
+alias javac='javac -J-Dfile.encoding=UTF-8'
+alias java='java -Dfile.encoding=UTF-8'
+</pre>
+</li>
+<li>このシェルファイルはログイン時に自動的に読み込まれ環境が設定されるが、編集した後に
+再ログインせずに更新した設定を反映するには、
+<pre class="SourceCode">
+source .bash_profile
+</pre>
+</li>
+</ol>
+</p>
+
+<ul class="Point">
+<li>javac の実行後に HellowWorld.class ファイルが生成されている</li>
+<li>java は、この .class ファイルを読み込んでJVM上で実行する</li>
+</ul>
+<p><a href="http://www.javaroad.jp/java_basic1.htm">＜＜より詳しい説明はこちら＞＞</a></p>
+
+<h3>String の変数を用いて、複雑な画面出力を試みる</h3>
+<p>次に、文字列と数字を組み合わせたプログラムの例を示す</p>
+<!-- 実行確認済み。ただし、-encodign UTF-8 が必要！ -->
+<pre class="SourceCode">
+public class HelloWorld {
+  public static void main(String[] args) {
+    String hello;
+    hello = "Hello, world!";
+    System.out.println(hello);
+    int age = 32;
+    int nextYearAge = age + 1;
+    String message1 = "私は" + age + "歳です。";
+    String message2 = "私は来年" + nextYearAge + "歳になります。";
+    System.out.println(message1);
+    System.out.println(message2);
+    System.out.println("私は来年" + age + 1 + "歳になります。");
+  }
+}
+</pre>
+<p class="Caution">コンパイル時に、文字化けの原因でエラー出力された場合は -Dfile.encoding UTF8 のオプションが必要。</p>
+<ul class="Point">
+<li>String は文字列のクラスである</li>
+<li>文字列同士の連結には「＋」演算子が用いられる</li>
+<li>連結演算子＋によって、数字は文字や文字列に自動変換される</li>
+<li>＋の両側が数値の場合も文字列の連結演算子として解釈される（例：age + 1 は 321 となる）</li>
+</ul>
+
+<div class="Exercise">
+<h4>練習問題</h4>
+<p>上記のプログラムで、末尾の命令 System.out.println("私は来年" + age + 1 + "歳になります。");
+が意味として正しく「私は来年33歳になります。」と表示される様に修正せよ。</p>
+</div>
+
+<h3>実行時に渡す変数を出力する</h3>
+<p>次に、プログラムを起動する際に main メソッドに渡す引数の値を処理するプログラム例を示す。</p>
+ <!-- 実行確認済み -->
+<pre class="SourceCode">
+public class HelloWorld {
+  public static void main(String[] args) {
+    if (args.length == 2) {
+      String message1 = "私の名前は" + args[0] + "です。";
+      String message2 = "今年で" + args[1] + "歳になります。";
+      System.out.println(message1);
+      System.out.println(message2);
+    }
+    else {
+      System.out.println("実行する際に、名前と年齢を指定して下さい。例：java HelloWorld Taro 20");
+    }
+  }
+}
+</pre>
+<p class="Caution">実行時にターミナルから漢字を入力した場合、文字化けする可能性がある</p>
+<ul class="Point">
+<li>実行時に渡される値は、文字列（String）の配列として、main メソッドが呼び出される際の args に代入される</li>
+<li>渡された配列に含まれる値の数は args.length で確認できるので、この数をエラー処理（入力データ数の過不足）に用いる</li>
+</ul>
+
+<h3>パッケージのクラスを使用して、実行後に値を入力する</h3>
+<p>ここでは、java.util というパッケージに含まれる Scanner という値入力用のクラスを用いたプログラム例を示す。</p>
+<u>Sum.java の内容：</u> <!-- 実行確認済み -->
+<pre class="SourceCode">
+import java.util.Scanner;
+
+public class Sum {
+  public static void main(String[] args) {
+    Scanner scanner = new Scanner(System.in); // 標準入力（System.in）からの入力を取り扱う
+    int total = 0;
+    String line = "0"; 
+    do {
+      int value = Integer.valueOf(line); // 文字列を整数値に変換する
+      total += value;
+      System.out.println("現在までの合計は " + total + " です。");
+      System.out.print("整数を入力: ");
+      line = scanner.nextLine(); // キーボードで入力された整数値を読み込む
+    } while (line.isEmpty() == false); // 入力が無かったら終了
+  }
+}
+</pre>
+<p class="Caution">何も入力せずに改行（リターンキー）を入力すると、プログラムが終了する</p>
+
+<ul class="Point">
+<li>import は、Ｃ＋＋言語における namespace と同様に、パッケージ名を省略するために用いられる
+  <ul>
+    <li>例えば、Scanner クラスは、java.util のパッケージに含まれているので、import されていなければ<br/>
+    <b>
+    java.util.Scanner scanner = new java.util.Scanner(System.in);
+    </b><br/>の様に、完全限定名（パッケージ名を省略しない名前）で指定する必要がある</li>
+  </ul>
+</li>
+<li>「＊」を用いて、階層的に命名されているパッケージの、ある階層の全体を指定できる。すなわち、<br />
+  import java.util.*; 
+  <br />
+  と記述すると、java.util パッケージに含まれる全クラスをインポートできる</li>
+<li>String も完全限定名は java.lang.String なので、import java.lang.String が必要だが、import java.lang.* は省略できる</li>
+<li>クラスの実体（インスタンス）を生成する際には new 演算子を用いる</li>
+<li>System クラスのフィールドである in は標準入力を表し、キーボードからの入力値を受け取れる</li>
+<li>int value = Integer.valueOf(line); は、文字列 line を整数値に変換するために Integer クラスの静的メソッド valueOf を使用している</li>
+</ul>
+
+<h1 id="IDE">Java の開発環境に関して</h1>
+<h3>テキストエディタ</h3>
+<p>本演習で開発するプログラムは比較的小規模なものなので、演習用ＰＣに付属の Emacs や テキストエディット で開発が可能である。
+コンパイル作業の効率化には、<a href="./Topics.html#ANT">Ant という命令</a>（Ｃ言語での make に相当）を利用できる。
+</p>
+
+<h3>Xcode</h3>
+<p>
+演習室のＰＣでは Xcode という統合開発環境（Integrated Development Environment (IDE) と呼ばれる）が付属している。これは、Java 向けに開発されたアプリケーションではないので、
+環境設定に苦労する事が予想される。ただし、テキストエディタとしては、変数名の自動入力等の便利機能が多くあるので、Emacs やテキストエディタの代用としてのみ利用し、コンパイル等の作業はターミナルを用いた命令で行うのを推奨する。
+</p>
+
+<h3>Eclipse 等の開発環境の使用法</h3>
+<p>Java の統合開発環境の代表例として Eclipse や Netbeans 等が挙げられるが、演習室のＰＣでは Eclipse が使用できる。統合開発環境は慣れるまでに時間がかかるが、プログラム開発に際して以下の利点が得られる。
+<ul>
+<li>多くのファイルを頻繁に切り替えながら編集しやすい</li>
+<li>コンパイル → エラー表示 → 修正作業がすばやく切り替えられる</li>
+<li>デバッグ作業が対話的に効率良く行える</li>
+<li>誤った構文や単語スペルを即座に表示され修正できる</li>
+<li>コメントの挿入やドキュメントの生成(javadoc)が効率良くできる</li>
+<li>記入しようとしている単語の候補を自動的に表示できる（オートコンプリーション機能）</li>
+<li>プラグインを組込む事により、作業やアプリケーションに特化した機能やインタフェースが利用できる（例：Android の開発環境）</li>
+</ul>
+ゆえに、時間に余裕のある人で統合開発環境に馴染みの無い人は、使い方を独学で習得する事を推奨する（使用方法に関しては、Web上に豊富な情報源が存在する）
+<ul>
+<li><a href="http://www.javadrive.jp/eclipse3/">Eclipse 入門（JavaDrive）</a></li>
+<li><a href="http://www.atmarkit.co.jp/fjava/rensai3/eclipsejava2_01/eclipse2_01_3.html">Eclipse で Java に強くなる</a></li>
+</ul>
+<p class="Caution">日本語が文字化けする場合には、上部メニューの Eclipse → 環境設定... を選択し、以下の様に文字コードを UTF-8 に設定する。</p>
+<img src="image/UTF-8.jpg"  />
+</p>
+<p>
+この開発環境を用いれば、jar ファイルの作成までメニューから実行できるが、外部のライブラリーを用いた場合等は、
+<b class="innerCaution">Eclipse の統合環境からしか実行できない場合が起こりうるので、
+提出前にはターミナルからの実行が可能である事を、必ず確認する事。</b>
+</p>
+<br />
+
+<h1 id="OO">捕捉：オブジェクト指向の基礎概念</h1>
+<h2>オブジェクト指向の目的</h2>
+<p>
+対象とするアプリケーションに対して、識別対象をオブジェクトと見なし、オブジェクト間の協調動作の分析を通じて設計を進めるアプローチであり、以下の効果を狙う：
+<ul>
+<li>機能の単位を部品化して再利用を促す</li>
+<li>データ構造や論理構造の複雑さを軽減する</li>
+<li>拡張性に富む柔軟なシステム構築環境を実現する</li>
+</ul>
+</p>
+
+<h2>基本的な概念</h2>
+<h3>クラス</h3>
+<p>オブジェクトの型であり、類似性の高いオブジェクトから共通な性質を抜き出して定義したもの</p>
+<h3>インスタンス</h3>
+<p>個々のオブジェクトを実体化したもの</p>
+<h3>オブジェクト</h3>
+<p>構成要素</p>
+<ul>
+<li>フィールド：データ、変数、またはその集合体であり、オブジェクトを特徴付ける要素</li>
+<li>メソッド：自身または他のオブジェクトから呼び出されて実行される一連の処理、手続き</li>
+</ul>
+<h3>カプセル化</h3>
+<p>アトリビュート、メソッドでオブジェクトを構築する事</p>
+
+<img src="image/OOA1.gif" />
+<p>　　　　　　　　　　　　　　　　　　　　　<b>オブジェクト指向の実装例</b></p>
+</div>
+</body>
+</html>

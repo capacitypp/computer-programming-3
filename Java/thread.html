@@ -1,0 +1,881 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>スレッド</title>
+<link rel="stylesheet" href="common.css" type="text/css" />
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+<div id="main">
+
+<h1>スレッド</h1>
+
+<h2>スレッドとは？</h2>
+<p>
+単一のプログラム上において、複数の動作を並行的に処理させたい場合に用いるクラスを Thread と呼ぶ。
+</p>
+<p>具体的には、並行処理させたいプログラムの一部分を Thread クラスの run メソッド内で実行させるように、プログラムを作成する（<a href="http://www.javaroad.jp/java_thread1.htm">＜＜基本概念の説明はこちら＞＞</a>）。並行処理といえども、CPUが一つしかない場合には Thread の継承クラスをインスタンス化したオブジェクトに対する処理（run メソッド）が順番に（逐次的に）実行される。複数生成された Thread 間の処理の順番はシステムによってスケジューリングされるが、優先度を明示することによって実行順を制御する事ができる（<a href="http://www.javaroad.jp/java_thread2.htm">＜＜優先度の説明はこちら＞＞</a>）。</p>
+<p>Thread クラスを継承(extends)することにより並行処理の単位となるクラスが作成できるが、Runnable インタフェースクラスを実装(implements)することによっても、同様の並行処理が実現できる（<a href="http://www.javaroad.jp/java_thread3.htm">＜＜スレッドの作成方法はこちら＞＞</a>）。 </p>
+<p>複数のスレッド間で同じ変数の値を共有しながら更新する際には、あるスレッドが更新中の値を他のスレッドも同時に更新してしまい誤りが生じるのを防ぐために、同期機構(synchronized)を使用する（<a href="http://www.javaroad.jp/java_thread4.htm">＜＜スレッドの同期はこちら＞＞</a>）。</p>
+
+<h2>マルチスレッドプログラミングでの留意事項</h2>
+<h3>安全性（予想外の代入を阻止できるか？）</h3>
+<p>適切な排他制御により、オブジェクトのフィールドが予想外の値を取る事を阻止できているかを確認する。
+安全性が保たれるクラスは「<b>スレッドセーフ</b>なクラス」と呼ばれ、スレッドセーフなクラスでなくても適切な排他制御で
+安全に利用できるクラスは「スレッド互換」と呼ばれる。<br />
+例えば、java.util.Vector はスレッドセーフなクラスだが、java.util.ArrayList はスレッドセーフなクラスでは無い（クラス API のリファレンスに記載されている）。ArrayList に対して適切な排他制御を導入すれば、スレッド互換なクラスとなる。
+ただし、そのクラスのメソッドが synchronized メソッドになっていればスレッドセーフが保証されるわけでは無い（それらは無関係である）。
+</p>
+
+<h3>生存性（処理が確実に実行されるか？）</h3>
+<p>必要な処理が実行されなくなる典型的な例として、複数のスレッドが相手のロック解放を互いに待ってしまう様なデッドロック（deadlock）が
+あり、これを確実に回避する必要がある。
+</p>
+
+<h3>再利用性（クラスを再利用できるか？）</h3>
+<p>スレッドの排他制御の仕組みや方針がクラスの中に巧みに隠蔽し、その再利用性を高める工夫をする。
+java.util.concurrent パッケージには、マルチスレッドプログラミングに便利な再利用性の高いクラスが提供されている。	
+</p>
+
+<h3>パフォーマンス（高速・大量に処理できるか？）</h3>
+<p>単位時間当たりの処理数（throughput）を高く、要求を出してから反応が戻ってくるまでの時間（responsiveness）と待ち時間（latency）を短く、同時に処理できるクライアントやファイルの数（capacity）、等を多くできるかを確認する。その他にも、efficiency、scalability、degradation 等がパフォーマンスに含まれる。
+</p>
+
+<h2>並行処理の簡単な実装例</h2>
+<h3>スレッドセーフでないプログラム例</h3>
+
+<u>安全で無いサービスのクラス</u>
+<pre class="SourceCode">
+public class WebService {
+    private int counter = 0; // クリックの総計数
+    private String name = "Nobody"; // クリックした人の名前
+    private char button = 'N'; // ボタンのID（クリックした人の頭文字とする）
+    public void clickResponse (String name, char button) { // クリック入力に対する応答関数
+        this.counter++;
+        this.name = name;
+        this.button = button;
+        check();
+    }
+    public String toString() { // 通過中通行人の情報呈示
+        return "No." + counter + ": " + name + ", " + button;
+    }
+    private void check() { // クリックした人の名前の頭文字がボタンIDと一致するか調べる
+        if (name.charAt(0) != button) {
+            System.out.println("***** BROKEN ***** " + toString());
+        }
+    }
+}
+</pre>
+<u>クリックするユーザの（スレッド）クラス</u>
+<pre class="SourceCode">
+public class UserThread <b class="innerCaution">extends Thread</b> {
+    private final WebService service; // Web サービスのクラス
+    private final String myname; // ユーザの名前
+    private final char mybutton; // ユーザがクリックするボタンのID
+    public UserThread(WebService service, String myname, char mybutton) {
+        this.service = service;
+        this.myname = myname;
+        this.mybutton = mybutton;
+    }
+    public void run() {
+        System.out.println(myname + " BEGIN"); // 処理開始の表示
+        while (true) {
+            <b class="innerCaution">service.clickResponse(myname, mybutton);</b> // クリックに対する応答
+        }
+    }
+}
+</pre>
+<u>メインクラス</u>
+<pre class="SourceCode">
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("Testing WebService, hit CTRL+C to exit.");
+        WebService service = new WebService();
+        new UserThread(service, "Akira", 'A').start(); // スレッドの生成と開始
+        new UserThread(service, "Bobby", 'B').start();
+        new UserThread(service, "Christine", 'C').start();
+    }
+}
+</pre>
+
+<u>実行例</u>
+<pre class="CommandLine">
+> java Main
+Testing WebService, hit CTRL+C to exit.
+Akira BEGIN
+Bobby BEGIN
+Christine BEGIN
+***** BROKEN ***** No.481: Akira, A
+***** BROKEN ***** No.773: Akira, A
+***** BROKEN ***** No.1189: Akira, A
+***** BROKEN ***** No.1501: Akira, A
+***** BROKEN ***** No.1839: Akira, A
+***** BROKEN ***** No.2237: Christine, C
+***** BROKEN ***** No.2494: Bobby, B
+***** BROKEN ***** No.2771: Bobby, B
+***** BROKEN ***** No.3087: Bobby, B
+***** BROKEN ***** No.3301: Akira, A
+***** BROKEN ***** No.3645: Akira, A
+***** BROKEN ***** No.3918: Akira, A
+***** BROKEN ***** No.4225: Akira, A
+***** BROKEN ***** No.4497: Bobby, B
+***** BROKEN ***** No.4821: Bobby, B
+***** BROKEN ***** No.5108: Bobby, B
+***** BROKEN ***** No.5371: Christine, C
+***** BROKEN ***** No.5738: Christine, C
+***** BROKEN ***** No.5999: Christine, C
+***** BROKEN ***** No.6504: Christine, C
+***** BROKEN ***** No.7302: Christine, C
+***** BROKEN ***** No.6905: Christine, C
+***** BROKEN ***** No.7725: Christine, C
+***** BROKEN ***** No.8153: Christine, C
+***** BROKEN ***** No.8513: Christine, C
+***** BROKEN ***** No.8953: Christine, B
+***** BROKEN ***** No.8953: Christine, B
+***** BROKEN ***** No.9302: Bobby, B
+***** BROKEN ***** No.9516: Bobby, C
+***** BROKEN ***** No.9516: Bobby, C
+</pre>
+<p>
+上記の例で BROKEN の出力が呼び出されるのは，共有されている WebService インスタンスのフィールド myname, mybutton が
+複数のスレッドから同時にアクセスされ，それらの値への書き込みが異なるスレッド UserThread から実行される事に起因する．
+<br/>
+また，名前の頭文字とボタンIDが一致している表示にも関わらず BROKEN の出力が呼び出されているのは，
+メソッド　check()　が呼び出されている際には両者が一致していなかったが，その後 toString() を呼び出した際には
+変数の値が上書きされて一致した場合を示す．
+</p>
+
+<h2>同期機構（排他制御）を導入したスレッドの制御</h2>
+
+<p>上記のプログラムでは、service.clickResponse(myname, mybutton); のメッソドが複数のユーザに対してで並行して処理されるので、代入の順序が入れ替わって正常に動作しない場合が考えられる。ゆえに、以下の様な排他制御を導入する。
+</p>
+<u>安全なサービスのクラス</u>
+<pre class="SourceCode">
+public class WebService {
+    private int counter = 0; // クリックの総計数
+    private String name = "Nobody"; // クリックした人の名前
+    private char button = 'N'; // ボタンのID（クリックした人の頭文字とする）
+    public <b class="innerCaution">synchronized</b> void clickResponse (String name, char button) { // クリック入力に対する応答関数
+        this.counter++;
+        this.name = name;
+        this.button = button;
+        check();
+    }
+    public <b class="innerCaution">synchronized</b> String toString() { // 通過中通行人の情報呈示
+        return "No." + counter + ": " + name + ", " + button;
+    }
+    private void check() { // クリックした人の名前の頭文字がボタンIDと一致するか調べる
+        if (name.charAt(0) != button) {
+            System.out.println("***** BROKEN ***** " + toString());
+        }
+    }
+}
+</pre>
+
+<u>実行例</u>
+<pre class="CommandLine">
+> java ThreadTest
+Testing WebService, hit CTRL+C to exit.
+Akira BEGIN
+Bobby BEGIN
+Christine BEGIN
+</pre>
+
+<p>
+以上の様に、インスタンスが不安定な状態になる範囲（クリティカル・セクション）を明確に定義し、その範囲は一つのスレッドだけが実行する様に実装する方式は、<b>Single Threaded Exception（別名：Critical Section, Critical Region）</b> と呼ばれ、synchronized を使って、クリティカル・セクションを定める。
+</p>
+
+<h2>Runnable インタフェースを使用した実装例</h2>
+<p>次に、Thread の継承ではなく、Runnable インタフースを実装する方法を解説する。</p>
+<pre class="SourceCode">
+public class UserThread <b class="innerCaution">implements Runnable </b> {
+    private final WebService service; // 安全で無い Web サービスのクラス
+    private final String myname; // ユーザの名前
+    private final char mybutton; // ユーザがクリックするボタンのID
+    public UserThread(WebService service, String myname, char mybutton) {
+        this.service = service;
+        this.myname = myname;
+        this.mybutton = mybutton;
+    }
+    public void run() {
+        System.out.println(myname + " BEGIN"); // 処理開始の表示
+        while (true) {
+            service.clickResponse(myname, mybutton); // クリックに対する応答
+        }
+    }
+}
+</pre>
+<u>メインクラス</u>
+<pre class="SourceCode">
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("Testing WebService, hit CTRL+C to exit.");
+        WebService service = new WebService();
+        <b class="innerCaution">
+        Thread userA = new Thread (new UserThread(service, "Akira", 'A'));
+        userA.start(); // スレッドの生成と開始
+        Thread userB = new Thread (new UserThread(service, "Bobby", 'B'));
+        userB.start();
+        Thread userC = new Thread (new UserThread(service, "Christine", 'C'));
+        userC.start();</b>
+    }
+}
+</pre>
+
+<h2>スレッドの協調</h2>
+
+<p>
+あるスレッドがsynchronizedメソッドを実行している間には、他のスレッドのメソッドの実行を禁止する排他制御が可能となるが、以下の様な協調的な制御：
+<ul>
+<li>ある領域が空いていたらデータを書き込むが，空いていなかったら空くまで「待つ」</li>
+<li>領域が空いたので、待っているスレッドに空いた事を「知らせる」</li>
+</ul>
+以上の様な「待つ」、「知らせる」機構を実現するために，wait(), notify(), notifyAll() メソッドが用意されている。
+</p>
+
+<ul class="Point">
+<li>全てのインスタンスは、待ち状態になったスレッドを格納する「ウェイトセット」を有する</li>
+<li>obj.wait() 命令によって、インスタンス obj のウェイトセットに、その命令を実行したスレッドが登録されて待ち状態となる</li>
+<ul>
+<li>obj が this の（または、単に wait() を呼び出した）場合は、その命令を実行したインスタンスのウェイトセットに登録される</li>
+</ul>
+<li>obj.notifyAll() 命令によって、インスタンス obj のウェイトセットに登録されている全ての待ち状態のメソッドが起こされる（待ち状態から復帰する）</li>
+<ul>
+<li>obj が this の（または、単に notifyAll() を呼び出した）場合は、その命令を実行したインスタンスのウェイトセットに登録されている全ての待ち状態のメソッドが起こされる</li>
+<li>notify() を呼び出した場合は、該当するウェイトセットに登録されているスレッドから一つが選ばれて起こされる</li>
+</ul>
+<li>threadObj.interrup() 命令によって、待ち状態にあるスレッドのインスタンス threadObj を起こす事ができる</li>
+<li>wait() メソッドがタイムアウトすると、その命令を実行したスレッドは起きる（待ち状態から復帰する）</li>
+<li>synchronized されたメソッド内で wait() 命令が実行された場合は、排他権（lock 状態）を破棄する</li>
+<li>待ち状態から復帰した際には、他の排他権（lock 状態）を有するスレッドの実行の終了を待ってから、自分の排他権を取り戻す（wait() 命令の次のステートメントの実行に移る）</li>
+<li>notify() では復帰させるスレッドを忘れてしまう可能性があるので、notifyAll()の方が安全で頑健なメソッドであると言える</li>
+<li>スレッドを一定時間停止させるには、Thread.sleep(long ms) メソッドを用いる。ただし、ms はミリ秒（1/1000秒）を単位とする。</li>
+</ul>
+
+<h2>スレッドの協調を用いた実装例</h2>
+
+<h3>Read-Write Lock パターン</h3>
+<p>共通のデータベースに複数のユーザが同時にアクセスする場合、データを読み込む処理は平行に動作させても
+安全であるが、書き込み処理の際には途中結果を誤って読み込む危険性が有る（スレッドセーフで無い）ので、
+協調的な排他制御を導入する必要がある。</p>
+
+<u>読み込みと書き込みの排他的に制御するクラス</u>
+<pre class="SourceCode">
+public final class ReadWriteLock {
+    private int readingReaders = 0; // (A) 実際に読んでいる最中のスレッドの数
+    private int waitingWriters = 0; // (B) 書くのを待っているスレッドの数
+    private int writingWriters = 0; // (C) 実際に書いている最中のスレッドの数
+    private boolean preferWriter = true; // 書くのを優先するならtrue
+
+    <b class="innerCaution">public synchronized void readLock() throws InterruptedException {</b>
+        while (writingWriters > 0 || (preferWriter && waitingWriters > 0)) { // ガード条件
+            <b class="innerCaution">wait(); // 全ての書き込み命令が修了するまで待つ</b>
+        }
+        readingReaders++;           // (A) 実際に読んでいるスレッドの数を1増やす
+    }
+
+    <b class="innerCaution">public synchronized void readUnlock() {</b>
+        readingReaders--;           // (A) 実際に読んでいるスレッドの数を1減らす
+        preferWriter = true; // 書き込みを優先させる
+        <b class="innerCaution">notifyAll(); // 読み終わったら待ち状態を解除する</b>
+    }
+
+    <b class="innerCaution">public synchronized void writeLock() throws InterruptedException {</b>
+        waitingWriters++;           // (B) 書くのを待っているスレッドの数を1増やす
+        try {
+            while (readingReaders > 0 || writingWriters > 0) { // ガード条件
+                <b class="innerCaution">wait(); // 全ての読み込みと書き込みの命令が終了するまで待つ</b>
+            }
+        } finally {
+            waitingWriters--;       // (B) 書くのを待っているスレッドの数を1減らす
+        }
+        writingWriters++;           // (C) 実際に書いているスレッドの数を1増やす
+    }
+
+    <b class="innerCaution">public synchronized void writeUnlock() {</b>
+        writingWriters--;           // (C) 実際に書いているスレッドの数を1減らす
+        preferWriter = false; // 書き込みの優先を解除する
+        <b class="innerCaution">notifyAll(); // 書き終わったら待ち状態を解除する</b>
+    }
+}
+</pre>
+
+<u>共有データのクラス</u>
+<pre class="SourceCode">
+public class Data {
+    private final char[] buffer;
+    <b class="innerCaution">private final ReadWriteLock lock = new ReadWriteLock(); // 読み書きの排他制御</b>
+    public Data(int size) {
+        this.buffer = new char[size];
+        for (int i = 0; i < buffer.length; i++) {
+            buffer[i] = '*';
+        }
+    }
+    public char[] read(int n) throws InterruptedException {
+        <b class="innerCaution">lock.readLock(); // 読み込みの排他状態開始</b>
+        try {
+            return doRead(n); // 読み込み処理
+        } finally {
+            <b class="innerCaution">lock.readUnlock(); // 読み込みの排他状態終了</b>
+        }
+    }
+    public void write(char c) throws InterruptedException {
+        <b class="innerCaution">lock.writeLock(); // 書き込みの排他状態開始</b>
+        try {
+            doWrite(c); // 書き込み処理
+        } finally {
+            <b class="innerCaution">lock.writeUnlock(); // 書き込みの排他状態終了</b>
+        }
+    }
+    private char[] doRead(int n) {
+        char[] newbuf = new char[buffer.length];
+        for (int i = 0; i < buffer.length; i++) {
+              if (i &lt; n)
+        		newbuf[i] = buffer[i];
+        	else {
+        		String digit = String.valueOf(n);
+        		newbuf[i] = digit.charAt(0);
+        	}
+        	slowly(); // １文字毎に遅延を生じさせる
+        }
+        return newbuf;
+    }
+    private void doWrite(char c) {
+        for (int i = 0; i < buffer.length; i++) {
+            buffer[i] = c;
+            slowly(); // １文字毎に遅延を生じさせる
+        }
+    }
+    private void slowly() { // 処理を意図的に遅らせる
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) { }
+    }
+}
+</pre>
+
+<u>書き込み命令のクラス</u>
+<pre class="SourceCode">
+import java.util.Random;
+
+public class WriterThread extends Thread {
+    private static final Random random = new Random();
+    private final Data data; // 共有データ
+    private final String filler; // 書き込む文字列
+    private int index = 0;
+    public WriterThread(Data data, String filler) {
+        this.data = data;
+        this.filler = filler;
+    }
+    public void run() {
+        try {
+            while (true) {
+                char c = nextchar();
+                data.write(c);
+                System.out.println(Thread.currentThread().getName() + " writes " + c);
+                Thread.sleep(random.nextInt(3000));
+            }
+        } catch (InterruptedException e) { }
+    }
+    private char nextchar() {
+        char c = filler.charAt(index);
+        index++;
+        if (index >= filler.length()) {
+            index = 0;
+        }
+        return c;
+    }
+}
+</pre>
+
+<u>読み込み命令のクラス</u>
+<pre class="SourceCode">
+public class ReaderThread extends Thread {
+    private final Data data; // 共有データ
+    private final int dataLength; // 読み込む文字数
+    public ReaderThread(Data data, int n) {
+        this.data = data;
+        this.dataLength = n;
+    }
+    public void run() {
+        try {
+            while (true) {
+                char[] readbuf = data.read(dataLength);
+                System.out.println(Thread.currentThread().getName() + " reads " + String.valueOf(readbuf));
+            }
+        } catch (InterruptedException e) { }
+    }
+}
+</pre>
+
+<u>メインクラス</u>
+<pre class="SourceCode">
+public class Main {
+    public static void main(String[] args) {
+        Data data = new Data(10);
+        new ReaderThread(data,1).start();
+        new ReaderThread(data,2).start();
+        new ReaderThread(data,3).start();
+        new ReaderThread(data,4).start();
+        new ReaderThread(data,5).start();
+        new WriterThread(data,"ABCDEFGHIJKLMNOPQTSTUVWXYZ").start();
+        new WriterThread(data,"abcdefghijklmnopqrstuvwxyz").start();
+    }
+}
+</pre>
+
+<u>実行結果</u>
+<pre class="CommandLine">
+> java Main
+Thread-1 reads *111111111
+Thread-5 reads *****55555
+Thread-3 reads ***3333333
+Thread-2 reads **22222222
+Thread-4 reads ****444444
+Thread-7 writes a
+Thread-4 reads aaaa444444
+Thread-5 reads aaaaa55555
+Thread-2 reads aa22222222
+Thread-1 reads a111111111
+Thread-3 reads aaa3333333
+Thread-6 writes A
+Thread-7 writes b
+Thread-5 reads bbbbb55555
+Thread-3 reads bbb3333333
+Thread-1 reads b111111111
+Thread-2 reads bb22222222
+Thread-4 reads bbbb444444
+Thread-6 writes B
+...
+</pre>
+<p class="Caution">
+上記の実行例では，共通のインスタンス Data を参照しているにも関わらず，そのメソッド read はスレッド毎に
+振り分けられて実行される点に留意せよ．
+</p>
+<p>
+以上の様に、インスタンスを共有する複数のスレッドがその状態を参照するだけのスレッド（Reader 役）と変更するスレッド（Writer 役）に分けられる事によって、安全性を確保しながらスループットを改善できる。
+実装方法としては、Reader 役と Writer 役を制御する２種類のロック機能を提供するスレッドを導入し、スレッドの排他制御は
+「Writer 役同士」と「Reader 役と Writer 役」に対して行う（<b>Guarded Suspension</b>）。「Reader 役同士」は排他制御を行わない（<b>Immutable</b>）事で、スループットを向上させる。
+</p>
+<p><b>Guarded Suspension (別名：Spin Lock, Gurded Wait）</b>とは、
+インスタンスの「適切な状態」を「ガード条件」として表現し、この条件が満たされるまでスレッドを待たせるパターンであり、
+ガード条件が満たされるまで、while 文で条件判定しながら wait メソッドで待機する。ガード条件の変化は
+notify または notifyAll メソッドで通知する。ただし、ガード条件のテストと変更は、Single Threaded Exception パターンで実装する。
+ただし、Guarded Suspension パターンではガード条件の待ち状態が増加すると応答性が低下するので、ガード条件が満たされていない時には処理を中断する<b>Balking</b>というパターンも存在する。例えば、作業中のファイルを一時保存するスレッドが相当する。このパターンではガード条件のテストには if 文を使用し、処理の中断には return で返るか　throw で例外を投げる。
+</p>
+
+<p><b>Immutable</b> パターンとは、共有しているインスタンスの状態が変化しない場合、スループットが落ちる上記の Single Threaded Exception パターンの使用を避ける。したがって、フィールドを隠蔽（private 宣言）し、値を変更するメソッド（setter）を全て削除する。ただし、値を参照するメソッド（getter）は存在しても問題無い。あるいは、フィールドを final 宣言して変更不可とする。
+</p>
+
+<center>
+<img width="700" src="./image/ThreadFig1.png" /><br />
+<b>図１．排他的制御の各種パターン</b>
+</center>
+
+<h3>割り込み例外（InterruptedException）</h3>
+<p>上記のプログラムでは、InterruptedException という例外が throw されているが、この例外を投げる代表的なメソッドには、
+<ul>
+<li>Object クラスの wait()</li>
+<li>Thread クラスの sleep()</li>
+<li>Thread クラスの join()</li>
+</ul>
+が挙げられる。これは処理が途中で割り込まれてキャンセルされた場合に投げられる例外である。具体的には、
+<ul>
+<li>notify()/notifyALll() を待っている wait()</li>
+<li>指定時間だけ待っている sleep()</li>
+<li>別のスレッド処理の終了を待機している join()</li>
+</ul>
+の待ち状態がキャンセルされる。
+</p>
+<p>インスタンスに対してこれらの割り込みキャンセルを発動するには、Thread クラスの interrupt() メソッドが用いられる。</p>
+
+
+<h3>Producer-Consumer パターン</h3>
+<p>データを作成する生産者（Producer）とそれを利用する消費者（Consumer）がデータを協調してやり取りするモデル。
+ここでは、職人（MakerThread）とがテーブル（Table）に置いたケーキを早食い競争の競技者（EaterThread）に直ぐに食べられる状況をシミュレーションしたプログラム例を示す。</p>
+<p>ただし、テーブルが小さいのでケーキは３個までしか置けず、競技者はケーキが置かれていないと取って食べられないとする。</p>
+
+<pre class="SourceCode">
+public class Table {
+    private final String[] buffer;
+    private int tail;  // 次にputする場所
+    private int head;  // 次にtakeする場所
+    private int count; // buffer内のケーキ数
+    public Table(int count) {
+        this.buffer = new String[count];
+        this.head = 0;
+        this.tail = 0;
+        this.count = 0;
+    }
+    // ケーキを置く
+    <b class="innerCaution">public synchronized void put(String cake) throws InterruptedException {</b>
+        System.out.println(Thread.currentThread().getName() + " puts " + cake);
+        while (count >= buffer.length) {
+            <b class="innerCaution">wait(); // 一杯になったケーキが取られるを待つ</b>
+        }
+        buffer[tail] = cake; // ケーキを置く
+        tail = (tail + 1) % buffer.length; // ケーキを次に置く場所
+        count++; // テーブルに置かれたケーキの総数
+        <b class="innerCaution">notifyAll(); // 待ち状態の競技者と職人を解除する</b>
+    }
+    // ケーキを取る
+    <b class="innerCaution">public synchronized String take() throws InterruptedException {</b>
+        while (count <= 0) {
+            <b class="innerCaution">wait(); // 空のテーブルにケーキが置かれるのを待つ</b>
+        }
+        String cake = buffer[head]; // ケーキを取る
+        head = (head + 1) % buffer.length; // ケーキを次に取る場所
+        count--; // テーブルに置かれたケーキの総数
+        <b class="innerCaution">notifyAll(); // 待ち状態の職人と競技者を解除する</b>
+        System.out.println(Thread.currentThread().getName() + " takes " + cake);
+        return cake;
+    }
+}
+</pre>
+
+<u>ケーキ職人のクラス</u>
+<pre class="SourceCode">
+import java.util.Random;
+
+public class MakerThread extends Thread {
+    private final Random random;
+    private final Table table;
+    private static int id = 0; // ケーキの通し番号(職人全員で共通の変数)
+    public MakerThread(String name, Table table) {
+        super(name);
+        this.table = table;
+        this.random = new Random();
+    }
+    public void run() {
+        try {
+            while (true) {
+                Thread.sleep(random.nextInt(1000)); // 無作為に１秒以下の遅延
+                String cake = "[ Cake No." + nextId() + " by " + getName() + " ]";
+                <b class="innerCaution">table.put(cake); // ケーキを置く</b>
+            }
+        } catch (InterruptedException e) { }
+    }
+    private static synchronized int nextId() {
+        return id++;
+    }
+}
+</pre>
+
+<u>早食い競技者のクラス</u>
+<pre class="SourceCode">
+import java.util.Random;
+
+public class EaterThread extends Thread {
+    private final Random random;
+    private final Table table;
+    public EaterThread(String name, Table table) {
+        super(name);
+        this.table = table;
+        this.random = new Random();
+    }
+    public void run() {
+        try {
+            while (true) {
+                <b class="innerCaution">String cake = table.take(); // ケーキを取る</b>
+                Thread.sleep(random.nextInt(1000)); // 無作為に１秒以下の遅延
+            }
+        } catch (InterruptedException e) { }
+    }
+}
+</pre>
+<u>メインのクラス</u>
+<pre class="SourceCode">
+public class Main {
+    public static void main(String[] args) {
+        Table table = new Table(3);     // ケーキを3個まで置けるテーブルを作る
+        new MakerThread("MakerThread-1", table).start(); // ケーキ職人その１
+        new MakerThread("MakerThread-2", table).start(); // ケーキ職人その２
+        new MakerThread("MakerThread-3", table).start(); // ケーキ職人その３
+        new EaterThread("EaterThread-1", table).start(); // 早食い競技者その１
+        new EaterThread("EaterThread-2", table).start(); // 早食い競技者その２
+        new EaterThread("EaterThread-3", table).start(); // 早食い競技者その３
+    }
+}
+</pre>
+
+<u>実行例</u>
+<pre class="CommandLine">
+> java Main
+MakerThread-2 puts [ Cake No.0 by MakerThread-2 ]
+EaterThread-1 takes [ Cake No.0 by MakerThread-2 ]
+MakerThread-3 puts [ Cake No.1 by MakerThread-3 ]
+EaterThread-2 takes [ Cake No.1 by MakerThread-3 ]
+MakerThread-2 puts [ Cake No.2 by MakerThread-2 ]
+EaterThread-3 takes [ Cake No.2 by MakerThread-2 ]
+MakerThread-1 puts [ Cake No.3 by MakerThread-1 ]
+EaterThread-3 takes [ Cake No.3 by MakerThread-1 ]
+MakerThread-3 puts [ Cake No.4 by MakerThread-3 ]
+EaterThread-1 takes [ Cake No.4 by MakerThread-3 ]
+MakerThread-2 puts [ Cake No.5 by MakerThread-2 ]
+EaterThread-2 takes [ Cake No.5 by MakerThread-2 ]
+MakerThread-1 puts [ Cake No.6 by MakerThread-1 ]
+EaterThread-1 takes [ Cake No.6 by MakerThread-1 ]
+MakerThread-1 puts [ Cake No.7 by MakerThread-1 ]
+EaterThread-3 takes [ Cake No.7 by MakerThread-1 ]
+</pre>
+
+<p>テーブルの振る舞いはBlockingQueueインタフェースで実装された ArrayBlockingQueue クラスを継承すると、
+簡単に実装できる。このクラスは、Queue が適切な状態（データが空の状態から取り出す（take）する際や、上限数を超える場合に登録する（put）する際にブロック（wait）する。</p>
+<u>テーブルのクラス（ArrayBlockingQueue 使用版）</u>
+<pre class="SourceCode">
+<b class="innerCaution">import java.util.concurrent.ArrayBlockingQueue;</b>
+
+public class Table extends ArrayBlockingQueue&lt;String&gt; {
+    public Table(int count) {
+        super(count);
+    }
+    <b class="innerCaution">public void put(String cake) throws InterruptedException {</b>
+        System.out.println(Thread.currentThread().getName() + " puts " + cake);
+        <b class="innerCaution">super.put(cake);  // ArrayBlockingQueue の put が呼ばれる</b>
+    }
+    <b class="innerCaution">public String take() throws InterruptedException {</b>
+        <b class="innerCaution">String cake = super.take();  // ArrayBlockingQueue の take が呼ばれる</b>
+        System.out.println(Thread.currentThread().getName() + " takes " + cake);
+        return cake;
+    }
+}
+</pre>
+<p>
+以上の様に、Producer-Consumerパターンでは、Producer から Comsumer にデータを渡す場合、それらの処理速度が異なる場合に低下するスループットをデータの安全性を保証しながら改善できる。
+実装方法は、複数個のデータを保持できる中継地点（Channel）役（上記の例の場合はTable）のスレッドを設け、この Channel スレッドでは Guarded Suspension によってデータの安全性を実現する。
+</p>
+
+<p>Producer-Consumer パターンではデータの受け渡しを中継するが、データの代わりにスレッドの受け渡しを中継するパターンは、<b>Woker Thread（別名：Thread Pool, Background Thread）</b>と呼ばれる。
+実装方法は、処理を実行するスレッドをワーカースレッドとして予め起動しておき、リクエストを表すインスタンスをワーカースレッドに渡す。この方法により、Comsumer の処理を多態化（異なるメソッドを混在させる事）できる。
+</p>
+<p>Consumer や、上記の Worker の処理結果を依頼者となるProducerが受け取る必要がある場合は、<b>Future</b>と呼ばれるパターンが用いられる。これは、処理の結果と同じインタフェース（API）を有する Future 役を作成して処理の開始直後に戻り値として返し、実際の処理の結果は、後から Future 役にセットするパターンである。
+</p>
+
+<center>
+<img width="500" src="./image/ThreadFig2.png" /><br />
+<b>図２．データ（スレッド）中継の各種パターン</b>
+</center>
+
+<br/><br/>
+
+<div id="Exercise" class="Exercise">
+<h4>
+課題５．Thread による分散処理
+</h4>
+<p>
+car.csv から生成されるデータに対して複数のユーザからの検索と削除依頼が発生するケースを考えて、
+ユーザの操作をスレッドとして実装する以下の仕様でプログラム（CarThread.java）を作成する。
+<ul>
+<li>共有データは課題２で作成したクラス Car.java でファイル car.csv を読み込み構成する（ただし、Car.java の内容を追加／修正しても良い）。</li>
+<li>ユーザは５名とし、検索条件は２個の条件（<b class="innerCaution">ただし、AND 条件とする</b>）を自動生成するクラス QueryGenerator によって自動生成される（<a href="./QueryGenerator.java">このクラスはここで提供される</a>）。</li>
+<li>各ユーザ（スレッド）は、QueryGenerator から受け取ったクエリ条件を満たす車種をデータベースから読み取って、以下の計算法で車の平均得点を計算する。
+<br />
+各車の得点 := vgood -> 3, good -> 2, acc -> 1, unacc -> 0 <br/>
+平均得点 := 条件を満たす車の得点の平均値
+</li>
+<li>平均得点が 0.5 以下となった場合、その条件を満たす車種の全てをデータから削除する
+（ただし、条件に該当する車種が存在しなかった場合には、何も行わない）。</li>
+<li>
+データが削除された際に、更新後の各評価値（unacc, acc, good, vgood）の車数を表示する。</li>
+<li>各ユーザは、削除処理を３回実行した後に処理を終了する。</li>
+<li>共有データの操作には、Read-Write Lock パターンを使用する</li>
+</ul>
+
+<h4>オプション（時間に余裕のある人は挑戦する）</h4>
+<p>
+検索をするユーザのスレッドとデータを削除するスレッド（１個のみで良い）を個別に作成し、
+検索スレッドから削除スレッドに該当する検索条件を渡す際には、Producer-Consumer パターンを用いて実装する。
+</p>
+
+</div>
+
+<u>実行例</u>
+<pre class="CommandLine">
+> java CarThread
+Thread-2 will delete data !
+Thread-1 will delete data !
+Thread-5 will delete data !
+Thread-4 will delete data !
+unacc = 1087, acc = 363, good = 69, vgood = 65, 
+unacc = 1003, acc = 315, good = 57, vgood = 65, 
+unacc = 871, acc = 315, good = 57, vgood = 65, 
+unacc = 802, acc = 300, good = 57, vgood = 65, 
+Thread-1 will delete data !
+unacc = 736, acc = 282, good = 57, vgood = 65, 
+Thread-5 will delete data !
+unacc = 627, acc = 282, good = 57, vgood = 65, 
+Thread-4 will delete data !
+unacc = 531, acc = 252, good = 51, vgood = 65, 
+Thread-3 will delete data !
+unacc = 498, acc = 249, good = 45, vgood = 65, 
+Thread-1 will delete data !
+unacc = 463, acc = 233, good = 42, vgood = 65, 
+Thread-1 has finished ...
+Thread-5 will delete data !
+unacc = 391, acc = 233, good = 42, vgood = 65, 
+Thread-5 has finished ...
+Thread-2 will delete data !
+Thread-4 will delete data !
+unacc = 344, acc = 217, good = 42, vgood = 65, 
+unacc = 269, acc = 217, good = 42, vgood = 65, 
+Thread-4 has finished ...
+Thread-2 will delete data !
+unacc = 242, acc = 197, good = 42, vgood = 65, 
+Thread-2 has finished ...
+Thread-3 will delete data !
+unacc = 200, acc = 173, good = 42, vgood = 65, 
+Thread-3 will delete data !
+unacc = 195, acc = 173, good = 42, vgood = 65, 
+Thread-3 has finished ...
+</pre>
+
+<h2>捕捉：ArrayList からの要素の削除</h2>
+<p>
+以下の違反コード例では、ArrayList に対して反復処理をしながら、ArrayList の remove(Object s) メソッドを使って要素を削除しているが、この場合は未定義の動作となる。</p>
+<u>要素の誤った削除例</u>
+<pre class="SourceCode">
+class BadIterate {
+  public static void main(String[] args) {
+    List&lt;String&gt; list = new ArrayList&lt;String&gt;();
+    list.add("one");
+    list.add("two");
+        
+    Iterator iter = list.iterator();
+    while (iter.hasNext()) {
+      String s = (String)iter.next();
+      if (s.equals("one")) {
+        <b class="innerCaution">list.remove(s);</b>
+      }
+    }
+  }    
+}
+</pre>
+<p>これは、イテレータを用いずに
+<pre class="SourceCode">
+    for (String s : list) {
+      if (s.equals("one")) {
+        <b class="innerCaution">list.remove(s);</b>
+      }
+    }
+</pre>
+とした場合でも同様である。</p>
+<p>
+上記の問題を解決するには、Iterator の remove() メソッドを用いる事により、基となる Collection からイテレータが最後に返した要素を削除できるので、その動作は完全に規定されている。ゆえに、コレクションに対する反復処理中に使っても安全である。
+</p>
+<pre class="SourceCode">
+// ...
+if (s.equals("one")) {
+  <b class="innerCaution">iter.remove();</b>
+}
+// ...
+</pre>
+
+<!-- h3>Thread-Per-Message</h3>
+<p>
+Client 役のスレッドが Host 役のインスタンスのメソッドを呼び出している場合、このメソッドの処理の遅れから応答性が低くなるのを
+阻止するパターン。
+<br/><b>実装方法</b>：Host 役のインスタンスの中で新しいスレッドを起動して、Client 役のスレッドの処理を進める。
+Client 役のクラスのコードには変更が不要。
+</p -->
+
+<!--
+<img width="800" src="./ThreadP1.png" /><br />
+<p><b>　　　　　　　　図２．複数スレッドがインスタンスを共有するパターン</b></p>
+
+<h2>役割の異なる２種類のスレッドが並行に動作する場合の５パターン</h2>
+<p>ある役目のスレッドと他の役目のスレッドが協調しながらデータを共有したり呼び出したりするには、以下のパターンがある。</p>
+
+<img width="800" src="./ThreadP2.png" /><br />
+<p><b>　　　　　　　　図３．役割の異なる２種類のスレッドが並行に動作するパターン</b></p>
+
+<h2>その他のスレッドパターン</h2>
+
+<h3>Two-Phase Termination</h3>
+<p>
+外部からスレッドを急に終了させると安全性が損なわれるので、終了をスレッド本人に判断させるパターン。スレッドを終了させるために用意されるメソッドは
+終了要求が来たというフラグを立てるだけとし、終了処理を開始しても安全なタイミングでそのフラグの状態を参照して、終了処理が要求されていれ実行に移す。	
+<br/><b>実装方法</b>：終了要求のフラグを立てるだけでなく、interrupt メソッドを使用して wait, sleep, join を中断する。
+実行時に例外処理が発生した場合でも確実に終了処理を実行するには、finally 文を使用する。また、終了処理中に別の処理を中断するためには、Balking パターンを使用する。
+</p>
+
+<h3>Thread-Specific Storage（別名：Per-Thread Attribute, Thread-Specific Data, Thread-Specific Field, Threar-Local Storage）</h3>
+<p>
+シングルスレッドでの動作を想定したオブジェクト(TSObject)をマルチスレッドで利用するパターン。
+<br/><b>実装方法</b>：TSObject と同じ API を有する TSObjectProxy を作成し、Client と TSObject 間の対応表を管理する
+Collection データを作成する。TSObjectProxy はこのCollection データから現在のスレッドに対するTSObject役を取得して処理を委譲する。
+従って、Client は TSObject 役を直接利用する代わりに、必ず TSObjectProxy を経由して利用することになり、TSObject 役の排他制御を保証する。
+</p>
+
+<h3>Active Object（別名：Actor, Concurrent Object）</h3>
+<p>
+処理を要求する Client スレッドと、処理内容を記述したオブジェクトであるシングルスレッドでの調整役を作成し、複数の Client から
+スレッドセーフでない調整役を、その応答性を落とさずに実行するパターン。
+<br/><b>実装方法</b>：Client からの要求を Proxy 役のメソッドが受け取って一つのオブジェクトに変換し、Producer-Comsumer パターンを
+使用して調整役に渡す。調整役は Worker-Thread パターン（ただし、ワーカースレッドは１個だけ）を用いて作成され、 Client に実行結果を返す部分では、Future パターンを用いる。
+</p>
+
+<img width="800" src="./ThreadP3.png" /><br />
+<p><b>　　　　　　　　図４．その他のスレッドパターン</b></p>
+
+<br /><br />
+-->
+<!-- h3>Thread-Per-Message パターン</h3>
+<p>
+上司が部下に仕事を頼む際にメッセージで指示をするモデル。スレッドが生成した処理が値を返さない場合に使用される。
+GUIを制御するクラスを部下と見なし、処理結果を並行して表示させる場合等が考えられる。
+</p>
+
+<u>ホスト（部下）クラス</u>
+<pre class="SourceCode">
+public class Host {
+    private final Helper helper = new Helper();
+    public void request(final int count, final char c) {
+        System.out.println("    request(" + count + ", " + c + ") BEGIN");
+        <b class="innerCaution">new Thread() { // 無名クラスを使用
+            public void run() {
+                helper.handle(count, c);
+            }
+        }.start();</b>
+        System.out.println("    request(" + count + ", " + c + ") END");
+    }
+}
+</pre>
+
+<u>ヘルパークラス（部下の仕事の処理）</u>
+<pre class="SourceCode">
+public class Helper {
+    public void handle(int count, char c) {
+        System.out.println("        handle(" + count + ", " + c + ") BEGIN");
+        for (int i = 0; i < count; i++) {
+            slowly();
+            System.out.print(c);
+        }
+        System.out.println("");
+        System.out.println("        handle(" + count + ", " + c + ") END");
+    }
+    private void slowly() {
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) { }
+    }
+}
+</pre>
+
+<u>メイン（上司）クラス</u>
+<pre class="SourceCode">
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("main BEGIN");
+        Host host = new Host(); // 部下を生成
+        host.request(10, 'A'); // 仕事を依頼（Aを10回出力）
+        host.request(20, 'B'); // 仕事を依頼（Bを20回出力）
+        host.request(30, 'C'); // 仕事を依頼（Cを30回出力）
+        System.out.println("main END");
+    }
+}
+</pre-->
+
+</body>
+</html>

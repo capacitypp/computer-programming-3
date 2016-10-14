@@ -1,0 +1,305 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>ネットワーク通信とスレッド</title>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+<h1>ネットワーク通信とスレッド</h1>
+
+<h2>ソケットを用いたサーバ ー クライアント間通信</h2>
+<p>ソケットを使用すると、TCP に基づく通信のプログラムを作成できる</p>
+<h3>サーバ側プログラム</h3>
+<pre class="SourceCode">
+import java.io.*;
+import java.net.*;
+
+public class MyServerModel {
+   public static final int PORT = 10000;
+
+   public static void main(String[] args) {
+      MyServerModel sm = new MyServerModel();
+
+      try {
+         ServerSocket ss = new ServerSocket(PORT);
+
+         System.out.println("待機します"); // 起動時に表示
+         while(true) { // 明示的に動作を終了させるまで、実行状態を継続する
+               Socket sc = ss.accept();
+               System.out.println("ようこそ"); // クライアントからの接続要求が届いたら表示
+                   
+               PrintWriter pw = new PrintWriter (new BufferedWriter (new OutputStreamWriter(sc.getOutputStream())));
+               pw.println("こちらはサーバです"); // PrintWriter に対してメッセージを出力
+               pw.flush(); // PrintWriter（のバッファ）に蓄えられたデータをクライアント側に送出
+               pw.close();
+               sc.close();
+          }
+      }
+      catch(Exception e) {
+         e.printStackTrace();
+      }
+   }
+}
+</pre>
+
+<h3>クライアント側プログラム</h3>
+<pre class="SourceCode">
+import java.io.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.net.*;
+import javax.swing.*;
+
+public class MyClientModel extends JFrame {
+   public static final String HOST = "localhost";
+   public static final int PORT = 10000;
+
+   private JTextArea ta;
+   private JPanel pn;
+   private JButton bt;
+
+   public static void main(String[] args) {
+      MyClientModel cm = new MyClientModel ();
+   }
+
+   public MyClientModel () {
+      super("クライアントモデル"); //タイトルの設定
+
+      //コンポーネントの作成
+      ta = new JTextArea();
+      pn = new JPanel();
+      bt = new JButton("接続");
+ 
+      //コンテナへの追加
+      pn.add(bt);
+      add(ta, BorderLayout.CENTER);
+      add(pn, BorderLayout.SOUTH);
+
+      //リスナの登録
+      bt.addActionListener(new SampleActionListener());
+      addWindowListener(new SampleWindowListener());
+
+      //フレームの設定
+      setSize(300, 200);
+      setVisible(true);
+   }
+
+   class SampleActionListener implements ActionListener {
+      public void actionPerformed(ActionEvent e) {
+         try { // 接続ボタンを押した際の処理
+            Socket sc = new Socket(HOST, PORT); // Socket を開いて
+            BufferedReader  br = new BufferedReader (new InputStreamReader(sc.getInputStream()));
+            String str = br.readLine(); // バッファリーダーから文字列を読み込む
+            ta.setText(str); // テキストエリアに表示
+            br.close();
+            sc.close();
+         }
+         catch(Exception ex) {
+            ex.printStackTrace();
+         }
+      }
+   }
+
+   class SampleWindowListener extends WindowAdapter {
+      public void windowClosing(WindowEvent e) {
+          System.exit(0);  // ウインドウを閉じたらアプリケーションを終了
+      }
+   }
+}
+</pre>
+
+<h3>制御の流れ</h3>
+<ol>
+<li>サーバ上でサーバソケットを作成し、クライアントからの接続を待ち受ける</li>
+<li>クライアントがソケットを作成すると、サーバとクライアント間で接続が確立される</li>
+<li>サーバが文字列を書き出し、それをクライアントが読み込む</li>
+<li>ソケットを閉じる（クローズする）</li>
+</ol>
+
+<h2>スレッドを用いたプロセス制御</h2>
+
+<h3>スレッドを扱うサーバの作成</h3>
+<pre class="SourceCode">
+import java.util.*;
+import java.io.*;
+import java.net.*;
+
+public class ThreadServerModel {
+   public static final int PORT = 10000;
+
+   public static void main(String[] args) {
+      ThreadServerModel sm = new ThreadServerModel ();
+
+      try {
+         ServerSocket ss = new ServerSocket(PORT);
+
+         System.out.println("待機します。");
+         while(true) {
+            try {
+               Socket sc = ss.accept();
+               System.out.println("ようこそ。");
+                   
+               Client cl = new Client(sc); // スレッドの生成
+               cl.start(); //　スレッドの開始
+            }
+            catch(Exception e){
+               e.printStackTrace();
+               break;
+            }
+         }
+      }
+      catch(Exception e) {
+         e.printStackTrace();
+      }
+   }
+}
+</pre>
+<pre class="SourceCode">
+class Client extends Thread {
+   private Socket sc;
+   private BufferedReader br;
+   private PrintWriter pw;
+
+   public Client(Socket s) {
+      sc = s;
+   }
+   public void run() {
+      try {
+         br = new BufferedReader (new InputStreamReader(sc.getInputStream()));
+         pw = new PrintWriter (new BufferedWriter(new OutputStreamWriter(sc.getOutputStream())));
+      }
+      catch(Exception e) {
+         e.printStackTrace();
+      }
+
+      while(true) {
+         try { 
+            String str = br.readLine();
+            pw.println("サーバ :「" + str + "」を受け取りました");
+            pw.flush();
+         }
+         catch(Exception e) {
+            try { // 終了時の処理
+               br.close();
+               pw.close();
+               sc.close();
+               System.out.println("GoodBye !");
+               break;
+             }
+             catch(Exception ex) {
+                ex.printStackTrace();
+            }
+         }
+      }
+   }
+}
+</pre>
+
+<h3>スレッドを扱うクライアントの作成</h3>
+<pre class="SourceCode">
+import java.io.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.net.*;
+import javax.swing.*;
+
+public class ThreadClientModel extends JFrame implements Runnable {
+   public static final String HOST = "localhost";
+   public static final int PORT = 10000;
+
+   private JTextField tf;
+   private JTextArea ta;
+   private JScrollPane sp;
+   private JPanel pn;
+   private JButton bt;
+
+   private Socket sc;
+   private BufferedReader br;
+   private PrintWriter pw;
+
+   public static void main(String[] args) {
+      ThreadClientModel cm = new ThreadClientModel();
+   }
+
+   public ThreadClientModel () {
+      super("スレッド付きクライアント");
+
+      tf = new JTextField();
+      ta = new JTextArea();
+      sp = new JScrollPane(ta);
+      pn = new JPanel();
+      bt = new JButton("送信");
+
+      pn.add(bt);
+      add(tf, BorderLayout.NORTH);
+      add(sp, BorderLayout.CENTER);
+      add(pn, BorderLayout.SOUTH);
+
+      bt.addActionListener(new SampleActionListener());
+      addWindowListener(new SampleWindowListener());
+
+      setSize(300, 200);
+      setVisible(true);
+
+      Thread th = new Thread(this); // 接続
+      th.start();
+   }
+
+   public void run() {
+      try {
+         sc = new Socket (HOST, PORT);
+         br = new BufferedReader (new InputStreamReader(sc.getInputStream()));
+         pw = new PrintWriter (new BufferedWriter(new OutputStreamWriter(sc.getOutputStream())));
+
+         while(true) {
+            try {
+               String str = br.readLine();
+               ta.append(str + "¥n");
+            }
+            catch(Exception e) { // 終了時の処理
+               br.close();
+               pw.close();
+               sc.close();
+               break;
+            }
+         }
+      }
+      catch(Exception e) {
+         e.printStackTrace();
+      }
+   }
+
+   class SampleActionListener implements ActionListener {
+      public void actionPerformed(ActionEvent e) { // 送信ボタンを押した際の処理
+         try {
+            String str = tf.getText();
+            pw.println(str);
+            ta.append(str + "¥n");
+            pw.flush();
+            tf.setText("");
+         }
+         catch(Exception ex) {
+            ex.printStackTrace();
+         }
+      }
+   }
+
+   class SampleWindowListener extends WindowAdapter {
+      public void windowClosing(WindowEvent e) {
+          System.exit(0); // ウインドウを閉じたらアプリケーションを終了
+      }
+   }
+}
+</pre>
+<ul class="Point">
+<li>クライアント・サーバ間のTCP接続には、Socket クラスを使用する</li>
+<li>ネットワークプログラムを作成する際には、応答待ちで生ずる処理の停滞を回避するためにスレッドで並行処理を行う</li>
+<li>クライアントからの接続を待ち受けるサーバを作成する際には、ServerSocket クラスを使用する</li>
+</ul>
+
+
+</body>
+</html>

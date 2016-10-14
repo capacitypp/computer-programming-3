@@ -1,0 +1,112 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>HTML検索フォーム作成例</title>
+</head>
+
+<body>
+
+<h1>車種データベースの検索システム</h1>
+<p>
+<form action="http://localhost:8080/MyServlet/CarRetrieval" method="GET">
+条件１：<!-- 条件１の選択を入力する領域 -->
+項目名 → <input type="text" name="cond1"/>、値 → <input type="text" name="value1"/> <br /><br />
+<input type="radio" name="logic" value="AND" checked>AND
+　　　　
+<input type="radio" name="logic" value="OR">OR
+<br /><br />
+条件２：<!-- 条件２の選択を入力する領域 -->
+項目名 → <input type="text" name="cond2"/>、値 → <input type="text" name="value2"/> <br /><br />
+　　　　　　　　　　　　<input type="submit" value="送信"/> <!-- 送信を実行するボタン -->
+</form>
+</p>
+
+<h1>別の実装方法</h1>
+<p>
+<form name="form1" action="http://localhost:8080/MyServlet/CarRetrieval" method="GET">
+<!-- 条件１の選択を入力する領域 -->　
+<select name="cond1" onChange="selectValue1(this)">
+<option value="">条件１</option>
+</select>　　
+<select name="value1" width="100px"><option value="">値１</option></select>
+<br /><br />
+<input type="radio" name="logic" value="AND" checked>AND
+　　　　
+<input type="radio" name="logic" value="OR">OR
+<br /><br /><!-- 条件２の選択を入力する領域 -->　
+<select name="cond2" onChange="selectValue2(this)">
+<option value="">条件２</option>
+</select>　　
+<select name="value2" width="100px"><option value="">値２</option></select>
+<br /><br />
+　　　　　　　　　　　　<input type="submit" value="送信"></input> <!-- 送信を実行するボタン -->
+</form>
+</p>
+
+<script type="text/javascript" language="JavaScript">
+<!--
+    // 最初の分類リスト (分類Aリスト)を定義
+    var bunruiA = new Array("buying","maint","doors","persons","luggage","safety");
+ 
+    // 次の分類(分類Aごとの分類Bリスト)を定義
+    var bunruiB = new Array();
+    bunruiB["buying"]= new Array("vhigh", "high", "med", "low");
+    bunruiB["maint"]= new Array("vhigh", "high", "med", "low");
+    bunruiB["doors"]= new Array("2", "3", "4", "5more");
+	bunruiB["persons"]  = new Array("2", "4", "more");
+	bunruiB["luggage"]  = new Array("small", "med", "big");
+	bunruiB["safety"]  = new Array("low", "med", "high");
+ 
+    // 分類Aの選択リストを作成
+    createSelection( form1.elements['cond1'], "条件１", bunruiA, bunruiA);
+	createSelection( form1.elements['cond2'], "条件２", bunruiA, bunruiA);
+ 
+    ////////////////////////////////////////////////////
+    //
+    // 選択ボックスに選択肢を追加する関数
+    //	引数: ( selectオブジェクト, value値, text値)
+    function addSelOption( selObj, myValue, myText )
+    {
+        selObj.length++;
+        selObj.options[ selObj.length - 1].value = myValue ;
+        selObj.options[ selObj.length - 1].text  = myText;
+ 
+    }
+    /////////////////////////////////////////////////////
+    //
+    //	選択リストを作る関数 
+    //	引数: ( selectオブジェクト, 見出し, value値配列 , text値配列 )
+    //
+    function createSelection( selObj, midashi, aryValue, aryText )
+    {
+        selObj.length = 0;
+        addSelOption( selObj, midashi, midashi);
+        // 初期化
+        for( var i=0; i < aryValue.length; i++)
+        {
+            addSelOption ( selObj , aryValue[i], aryText[i]);
+        }
+    }
+    ///////////////////////////////////////////////////
+    //
+    // 	分類Aが選択されたときに呼び出される関数
+    //
+    function selectValue1(obj)
+    {
+        // 選択肢を動的に生成
+        createSelection(form1.elements['value1'], "値１", 
+                bunruiB[obj.value], bunruiB[obj.value]);
+    }
+	
+	function selectValue2(obj)
+    {
+        // 選択肢を動的に生成
+		createSelection(form1.elements['value2'], "値２", 
+                bunruiB[obj.value], bunruiB[obj.value]);
+ 
+    }
+//-->
+</script>
+</body>
+</html>

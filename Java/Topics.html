@@ -1,0 +1,625 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Topic 集</title>
+<link rel="stylesheet" href="./common.css" type="text/css" />
+<link rel="stylesheet" href="./style.css" type="text/css" />
+</head>
+
+<body>
+<div id="main">
+<h1 id="YAGNI">１．変数のスコープ（適用範囲）の適切な設定法</h1>
+<p>Ｃ言語では関数内で使用する全変数は冒頭部で宣言するが、Javaでは任意の位置での宣言が可能なので、変数が使用される直前に宣言して関連の無い範囲に影響が及ばない（参照できない）様に宣言できる。この変数の宣言方法のポリシーはYAGNI（You Aren't Going to Need It）と呼ばれる。これは、「使うかもしれないという予想で余分な変数やメソッドを作るな」、または「変数やメソッドは必要になった際に宣言すれば良い」という設計思想を表す。</p>
+<h3>変数のスコープ（参照される範囲）を適切に設定する</h3>
+<p>まずは、Ｃ言語の様な変数の宣言方法の例を示す。</p>
+<u>YAGNI規則適用前</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+public class NoYAGNI {
+  public static void main(String[] args) {
+    // 変数宣言（プログラムの先頭で、使う変数をすべて宣言）
+    int argLength;
+    String result;
+    int i;
+    String element;
+    
+    // 処理開始
+    argLength = args.length;
+    System.out.println("arguments length is " + argLength);
+    
+    result = "";
+    for (i = 0; i < argLength; i++) {
+      element = "args[" + i + "] = " + args[i] + ", ";
+      result += element; // String クラスに特別に許可された演算子（糖衣構文）で、実行速度は遅い！
+    }
+    
+    System.out.println(result);
+  }
+}
+</pre>
+
+<p>次に、YAGNI 規則を適用して修正した例を示す</p>
+<u>YAGNI規則適用後</u><!-- 実行確認済み -->
+<pre class="SourceCode">
+public class WithYAGNI {
+  public static void main(String[] args) {
+    int argLength = args.length; // main 関数内全体で参照される
+    System.out.println("arguments length is " + argLength);
+
+    String result = ""; // main 関数内全体で参照されるが使用される直前で宣言
+    for (int i = 0; i < argLength; i++) { // i は for 文内でのみ参照される
+      String element = "args[" + i + "] = " + args[i] + ", "; // element は for 文内でのみ参照される
+      result += element;
+    }
+
+    System.out.println(result);
+  }
+}
+</pre>
+
+<br /><br />
+
+<h1 id="ANT">２．パッケージ／ANT による作業効率化</h1>
+<h2>パッケージの構築</h2>
+<p>
+Stringという名前は単純名と呼ばれ、これは実際には java.lang.String という完全限定名がある。<br />
+新たにクラスを作成する際にパッケージを指定しないと、そのクラスはデフォルトパッケージと呼ばれる【名前の無いパッケージ】に属するとされる。
+例えば、HelloWorld というクラスを作成する際にパッケージの名前を指定しないと、単純名と完全限定名が共に HelloWorld という名称になる。<br />
+ライブラリーを外部から持ってきて利用する場合にクラス名が衝突する可能性があるので、その回避策として独自のパッケージ名を付ける事が推奨される。
+<br />
+パッケージ名をクラスに設定するには、以下の様な package 文をファイルの冒頭で宣言する。
+<pre class="SourceCode">
+package jp.ac.tut.imc;
+</pre>
+上記の宣言により、作成するクラスはjp.ac.tut.imc のパッケージの属する事になり、
+例えば HelloWorld というクラスは、jp.ac.tut.imc.HelloWorld という完全限定名となる。
+したがって、外部からのプログラムに HelloWorld という名称のクラスがあったとしても、
+パッケージ名で区別できることになる。</p>
+<p class="Caution">
+パッケージ名は任意に設定できるが、Java 言語仕様では開発者自身が保有するインターネットドメイン名を逆順にした名前の使用を推奨している。
+</p>
+<p>
+今まで作ってきたクラスは、全てデフォルトパッケージに属していて、そのソースファイルは javac コマンドを実行する際のカレントディレクトリにあった。しかし、パッケージ名付きのクラスのソースファイルは、パッケージ名に合わせたディレクトリーに配置しなければならないという規則がある。すなわち、上記の例では、
+
+作業用のディレクトリ  → jp → ac → tut → imc と４段階も辿られたサブディレクトリ imc の中に、そのパッケージに属する全てのソースファイルが置かれる。
+</p>
+
+<p>
+import 文で imc ディレクトリ下にある全てのクラスを参照したい場合は、
+<pre class="SourceCode">
+import jp.ac.tut.imc.*;
+</pre>
+と宣言する。
+</p>
+
+<h2>Ant による作業効率の改善</h2>
+<p>Java を学ぶ初期段階では、一度に多くのファイルを編集する機会は少ないので、必ずしも上記のIDEを使用する必要は無い。しかし、コンパイルの作業を半自動化するため、複数のソースファイルを一度にコンパイル(javac)するために ant 命令を使用する（多くのIDEも、内部的にはこの命令を使用している）。</p>
+
+<h3>Ant の使用法と規則ファイル（build.xml）の構成法</h3>
+<p>
+AntはＣ言語Ｃ＋＋で用いる make 命令に相当するもので、make を実行する規則を指定するために作成する Makefile に相当するものとして、build.xml と名付けられる XML ファイルを作成する必要がある。 </p>
+まず、下準備として、
+<ul>
+<li>作業ディレクトリの下に src という名のサブディレクトリを作成し、全てのソースファイル(.java)をその src ディレクトリに移動させる</li>
+<li>作業ディレクトリの下に class という名のサブディレクトリを作成しておく（中身は空で良い）</li>
+<li>作業ディレクトリで、build.xml という名のテキストファイルを編集する
+</ul>
+<p>
+以上の準備が整えられた際に、最も簡単な build.xml 構成は以下で与えられる：
+
+<pre class="SourceCode">
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;Shift_JIS&quot; ?&gt;
+&lt;project default=&quot;mySample&quot;&gt;
+  &lt;target name=&quot;mySample&quot;&gt;
+      &lt;javac srcdir=&quot;./src&quot; destdir=&quot;./class&quot;/&gt;
+      &lt;java classname=&quot;MyMain&quot; classpath=&quot;./class&quot; /&gt;
+  &lt;/target&gt;
+&lt;/project&gt;
+</pre>
+
+ただし、mySample という名前は任意に命名でき、classname で指定される MyMain は、main 関数を実行するクラス名とする。</p>
+<p>上記の build.xml を作成後、ターミナルを立ち上げて cd 命令で作業ディレクトリに移動し、make と同様に
+<pre class="CommandLine">
+ant
+</pre>
+と命令を実行するだけで良い（ただし、build.xml の構成方法に依っては、ant の次に名前等を指定する必要がある）。<br />
+コンパイル実行後には、サブディレクトリ class にバイトコードが自動保存されている。</p>
+
+<p>
+ant の使用方法や build.xml の設定方法の詳細に関しては、<a href="http://www.javadrive.jp/ant/">JavaDriveの解説</a>等を参照の事。<br/ >
+また、XML の基本に関しては、<a href="http://www.webword.jp/xml/">WebWordのXML入門</a>や、<a href="http://ykr414.com/xml/xml00.html">XMLの基本</a>を参照の事。</p>
+
+<br /><br />
+
+<h1 id="Object">３．オブジェクト（Object）クラス</h1>
+<p>Java で用いられる全てのクラスは、暗黙裏に最も基本的なクラスである Object クラスを継承している。つまり、親（基底）クラスを明示しない全てのクラスは Object クラスを自動的に継承するので、クラスを明示的に継承する場合も含めて、全てのクラスが Object クラスを継承する事になる。</p>
+
+<h3>Object クラスのメソッド</h3>
+<p>Object クラスはフィールドを持たず、以下のメソッドから構成される：
+<ul>
+<li>String	toString() ：オブジェクトの文字列表現を返す［オブジェクトの代入］</li>
+<li>protected  Object	clone() ：オブジェクトのコピーを生成［オブジェクトの代入］</li>
+<li>boolean	equals(Object obj) ：オブジェクト間の等価性を判定［オブジェクトの判定］</li>
+<li>Class &lt;? extends Object&gt;	getClass() ：オブジェクトのクラス情報を取得するための Class クラスのオブジェクトを返すで利用［オブジェクトの判定（リフレクション）］</li>
+<li>int	hashCode()：オブジェクトのハッシュ値を返す［オブジェクトの管理］</li>
+<li>protected  void	finalize() ：ガベージコレクションがこのオブジェクトの領域を解放できるかを判定する際に呼び出される［オブジェクトの管理］</li>
+<li>void	notify() ：wait により実行不可状態にある一つのスレッドを実行可能状態にする［並行処理］</li>
+<li>void	notifyAll()：wait により実行不可状態にある全てのスレッドを実行可能状態にする［並行処理］</li>
+<li>void	wait() ：他のスレッドからの通知を受けるまでこのオブジェクトのスレッドを待ち状態にする［並行処理］</li>
+<li>void	wait(long timeout)： 他のスレッドからの通知を受けるまでか、指定時間が経過するまでこのオブジェクトのスレッドを待ち状態にする［並行処理］</li>
+</ul>
+
+<h3>オブジェクトのコピー</h3>
+<p>Java のオブジェクトは参照型なので、代入演算子 ＝ を用いた foo = bar; の処理では、foo と bar は同じ実体（インスタンス）を表す（それを参照する変数名が異なっているだけ）。一方、オブジェクトを複製する（すなわち、中身は同じでメモリ上の格納位置が異なるもう一つの実体として生成する）場合には、クローンメソッド（clone ()）が全てのクラスの基底となる Object クラスにあらかじめ備わっているので、新たに作成したクラスを複製したい場合には、この clone メソッドをオーバーライドする必要がある。</p>
+
+<h3>Serializable の継承によるファイル保存可能なオブジェクトの構成</h3>
+<p>Java では、オブジェクトをファイルに保存するために、インスタンスを読み書きできる形式に整形する直列化（Serialization）する機能を提供している。オブジェクトを整列化するためには、java.io.Serializable インターフェースを implements する必要がある。</p>
+インスタンスを実際にファイルに書き込み、読み出す仕組みは、以下の様に実現される。
+<pre class="SourceCode">
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
+    ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("出力ファイル名"));
+    oos.writeObject (書き出すインスタンス);
+    ObjectInputStream ois = new ObjectInputStream(new FileInputStream("入力ファイル名"));
+    クラス 読み込む変数 = (クラス) ois.readObject();
+</pre>
+<p>
+<span class="innerCaution">static や transient の指定が無い</span>クラスのフィールドは、シリアライズにより全て自動的に保存される。	
+</p>
+<pre class="SourceCode">
+import java.io.Serializable;
+public class SerializableObject implements Serializable {
+  private String name; // シリアライズのとき保存される。
+  <b class="innerCaution">static</b> String staticField; // クラス変数は無視される。
+  private <b class="innerCaution">transient</b> int hashCode; // transient キーワードが付いたフィールドは無視される。
+
+  //シリアライズしたいクラスの実装...
+
+}
+</pre>
+<p class="Caution">シリアライズの際に保存させないフィールドには、transient を指定する。</p>
+
+<h3>instanceof 演算子と getClass () メソッド</h3>
+<p>Java では多態性（ポリモーフィズム）を実現するために、コンパイル時にはデータの最終的な型は確定させずに実行時に決定する。
+したがって、あるクラス群のスーパークラスで宣言されたデータ型（例えば、第２回で使用した Converter）が実行時に何のクラス（例えば、DoublingConverter, NoDigitConverter 等）になっているのかを知る必要のある場合が存在する。その際には instanceof 演算子を用いて、</p>
+<p>オブジェクト名 instanceof 型名</p>
+<p>と記述すると、その左辺のオブジェクトの型の名前が右辺と一致した場合に true の値を返す。実際には、</p>
+<pre class="SourceCode">
+String checkConverterClass (Converter convert) {
+
+    if (convert instanceof DoublingConverter)
+    	return "DoublingConverter";
+    else if (convert instanceof NoDigitConverter)
+    	return "NoDigitConverter";
+     ...
+</pre>
+の様な使い方となる。ただし、上記の例の様に単にクラス名の取得だけが目的であれば、
+<pre class="SourceCode">
+String checkConverterClass (Converter convert) {
+	return convert.getClass ().getName ();
+}
+</pre>
+の様に、Object クラスの getClass () メソッドを使用すれば良い。
+</p>
+
+<br /><br />
+<h1 id ="Boxing">４．ボクシングとアンボクシング</h1>
+<h3>基本型とラッパー型</h3>
+<p>
+Java では、基本型（int, float, char, boolean 等）の値はインスタンスでは無い特殊な扱いを受けるが、数値や真偽値を表すオブジェクトが無いと
+不便な場合があるので、以下の表の様なラッパークラスが用意されている。</p>
+</p>
+
+<table width="200" border="1">
+  <tr>
+    <th scope="col">基本型</th>
+    <th scope="col">ラッパー型</th>
+  </tr>
+  <tr>
+    <td>byte</td>
+    <td>java.lang.Byte</td>
+  </tr>
+  <tr>
+    <td>short</td>
+    <td>java.lang.Short</td>
+  </tr>
+  <tr>
+    <td>int</td>
+    <td>java.lang.Integer</td>
+  </tr>
+  <tr>
+    <td>long</td>
+    <td>java.lang.Long</td>
+  </tr>
+  <tr>
+    <td>char</td>
+    <td>java.lang.Character</td>
+  </tr>
+  <tr>
+    <td>float</td>
+    <td>java.lang.Float</td>
+  </tr>
+  <tr>
+    <td>double</td>
+    <td>java.lang.Double</td>
+  </tr>
+  <tr>
+    <td>boolean</td>
+    <td>java.lang.Boolean</td>
+  </tr>
+</table>
+
+<ul class="Point">
+<li>基本（プリミティブ）型をオブジェクト化したものがラッパークラス（ラッパー型）</li>
+<li>基本型からラッパー型への変換はボクシング（Boxing）</li>
+<li>ラッパー型から基本型への変換はアンボクシング（Unboxing）</li>
+<li>ラッパー型のインスタンスは参照型となる</li>
+</ul>
+<u>基本型の値とラッパー型のインスタンスの相互変換</u><!-- 実行動作確認済み -->
+<pre class="SourceCode">
+public class WrapperSample {
+
+  public static void main(String[] args) {
+
+    // int ⇔ Integerの変換
+    int primitiveOne = 1;
+    Integer wrappedOne = Integer.valueOf(primitiveOne);
+    int unwrappedOne = wrappedOne.intValue();
+    System.out.println("wrappedOne = " + wrappedOne);
+    System.out.println("unwrappedOne = " + unwrappedOne);
+
+    // boolean ⇔ Booleanの変換
+    boolean primitiveFalse = false;
+    Boolean wrappedFalse = Boolean.valueOf(primitiveFalse);
+    boolean unwrappedFalse = wrappedFalse.booleanValue();
+    System.out.println("wrappedFalse = " + wrappedFalse);
+    System.out.println("unwrappedFalse = " + unwrappedFalse);
+
+    // double ⇔ Doubleの変換
+    double primitivePi = 3.14159265358979;
+    Double wrappedPi = Double.valueOf(primitivePi);
+    double unwrappedPi = wrappedPi.doubleValue();
+    System.out.println("wrappedPi = " + wrappedPi);
+    System.out.println("unwrappedPi = " + unwrappedPi);
+  }
+}
+</pre>
+
+<p>上記の相互変換は、メソッドの呼び出しが無くても変数の型関係を解釈して、以下のプロフラム例の様に自動的にボクシング／アンボクシングを実行してくれる。
+<br />この例の様に、プログラムの書きやすさ（見た目の平易さ）を優先して構文規則に特例を設ける方法は、<b class="innerCaution">糖衣構文（シンタックスシュガー）</b>と呼ばれる。
+</p>
+<u>基本型とラッパー型間の自動相互変換（上記プログラムと同じ動作）</u><!-- 実行動作確認済み -->
+<pre class="SourceCode">
+public class AutoBoxingUnboxingSample {
+
+  public static void main(String[] args) {
+
+    // int ⇔ Integerの変換
+    int primitiveOne = 1;
+    Integer wrappedOne = primitiveOne;
+    int unwrappedOne = wrappedOne;
+    System.out.println("wrappedOne = " + wrappedOne);
+    System.out.println("unwrappedOne = " + unwrappedOne);
+
+    // boolean ⇔ Booleanの変換
+    boolean primitiveFalse = false;
+    Boolean wrappedFalse = primitiveFalse;
+    boolean unwrappedFalse = wrappedFalse;
+    System.out.println("wrappedFalse = " + wrappedFalse);
+    System.out.println("unwrappedFalse = " + unwrappedFalse);
+
+    // double ⇔ Doubleの変換
+    double primitivePi = 3.14159265358979;
+    Double wrappedPi = primitivePi;
+    double unwrappedPi = wrappedPi;
+    System.out.println("wrappedPi = " + wrappedPi);
+    System.out.println("unwrappedPi = " + unwrappedPi);
+  }
+}
+</pre>
+
+<p>ただし、特殊な値（null等）を使用した場合、下記のプログラム例の様にメソッドの呼び出しを省略するとアンボクシングが失敗する場合がある。</p>
+<u>自動変換（オート・アンボクシング）が失敗する例</u><!-- 実行動作確認済み -->
+<pre class="SourceCode">
+public class AutoUnboxingTrapSample {
+
+  public static void main(String[] args) {
+    // ラッパー型の1を基本型にオート・アンボクシングして表示
+    Integer wrappedOne = Integer.valueOf(1);
+    int unwrappedOne = wrappedOne;
+    System.out.println("unwrappedOne = " + unwrappedOne);
+
+    // ラッパー型のnullを基本型にオート・アンボクシングして表示
+    Integer wrappedNull = <b class="innerCaution">null</b>;
+    int unwrappedNull = wrappedNull; // ここで、NullPointerException が発生する！
+    System.out.println("unwrappedNull = " + unwrappedNull);
+  }
+}
+</pre>
+
+<br /><br />
+<h1 id ="Gabage">５．ガベージ・コレクション</h1>
+<p>Java では、不要となったメモリ領域を再利用するための仕組みとして「ガベージ・コレクション（ゴミ回収）」という機能が備わっている。より具体的に言えば、
+不要となったメモリ領域や、使用中の領域の隙間にある小領域を集めて、再利用可能な連続したメモリ領域を増やす仕組みが実装されている。Ｃ言語やＣ＋＋では free や delete を用いてメモリ領域の解放はプログラマの責任として任せられているが、この領域解放を書き忘れるとプログラムの実行と共に使用可能な領域がどんどん減少していく「メモリ・リーク」と呼ばれる現象が生じてしまう。そこで、Java の設計者は処理系の中にガベージ・コレクションの機能を組み込み、プログラマの負担を軽減すると共に、安全にメモリ領域の管理を行える様にしている。</p>
+
+<h3>ガベージ・コレクションの仕組み</h3>
+<p>ガベージ・コレクションの処理は、ガベージコレクタと呼ばれるプログラムが時々メモリ領域をチェックして不要となってオブジェクトを回収して、使用可能な領域を増やしている。</p>
+<p>不要になったオブジェクトの判断は、「<b class="innerCaution">もう、どのオブジェクトからも参照されていない、あるいは参照する事のできないオブジェクト</b>」かを調べ、その条件に該当するオブジェクトがガベージ・コレクションの対象となって、回収される。</p>
+<p>ガベージ・コレクションの問題点として、「<b class="innerCaution">いつ起動されるか予測できない</b>」性質が挙げられる。つまり、ガベージコレクタの起動は全自動なプログラムとして実装されている。しかし一般的には、
+<ul>
+<li>使用可能な領域が少なくなってきたタイミング</li>
+<li>CPU の使用状況に空きのあるタイミング</li>
+</ul>
+に起動される方式が多い。
+</p>
+<p>ガベージ・コレクションを制御するには、System クラスのメソッド <span class="innerCaution">System.gc();</span> を呼び出す事でガベージ・コレクションの実行を促す事ができ、メモリ領域が最大限に回復された時点で処理が呼び出し元に戻る。しかしこのメソッドはあくまで「<b class="innerCaution">実行を促す</b>」だけのものであり、実際には実行されない可能性がある（すなわち、何もしないよりは実行の可能性が高まる程度の影響力しか無い）。ガベージ・コレクションの実行は、一般的にシステムに大きな負荷を与えるので、System.gc(); の使用は推奨されない。</p>
+
+<h3>不要なオブジェクトの明示方法</h3>
+<p>ガベージ・コレクションによって、全ての不要なオブジェクトのメモリ領域が一気に解放されるという保証は無い。
+不要になったオブジェクトを明示的に宣言するには、<b class="innerCaution">null を代入する</b>方法がとられる。すなわち、参照型の変数に null を代入する事により、「<b class="innerCaution">それまでに参照していたオブジェクトを指すのは止めて、何も参照しない変数とする</b>」事を宣言する。</p>
+<u>不要なオブジェクトの明示例</u>
+<pre class="SourceCode">
+public void myMethod() {
+
+  MyClass mc = new MyClass();
+
+  … // 何か処理
+
+  // この辺りで mc は不要になる
+
+  mc = null; // この代入により、mc は次のガベージ・コレクション時に確実に回収される
+
+  … // 何か処理
+
+}
+</pre>
+
+<br /><br />
+<h1 id="Javadoc">６．保守のための文書化</h1>
+<h2>Javadoc による API 仕様書の自動生成</h2>
+<p>
+Javaでは、ソースコードから HTML 形式の API 仕様書を自動生成する「Javadoc」の機能が装備されている。
+これは、プログラムについて説明するドキュメントをソースコードに埋め込むためのものである。<br/>
+プログラムについての説明をソースコードに埋め込むことができないと、説明文を別ファイルで管理することになり、２種類のファイルの内容の一貫性を保ちながら管理する必要が生じる。つまりこの管理方式では、開発者が軽微な修正を行う際に「ついついドキュメントの更新を忘れてしまう」といったことが起きるので、説明と動作が一致しないという問題が発生してしまう。</p>
+<p>
+Javadoc でクラスの概要やメソッドの概要を記述しておくと、その情報からHTML形式のドキュメントファイルを生成するので、ソースコードの修正時にドキュメントの修正もできる。実際に Java Platform SE の API リファレンスはこの機能で生成されている。
+</p>
+<p><a href="http://www.javadrive.jp/javadoc/">＜＜Javadoc に関する詳細な説明へのリンク＞＞</a></p>
+
+<h2>Javadoc 生成の実行例</h2>
+<p>Eclipse 等の統合開発環境ではJavadoc生成の機能が備わっているが、ターミナルからコマンド形式で生成するには、
+ソースファイルが置かれたフォルダに移動した後に、以下の様に実行する。</p>
+<pre class="CommandLine">
+javadoc -private -encoding UTF-8 *.java
+</pre>
+<p>ここで、-private はプライベートな変数や関数も全て含める場合のオプションであり、文字コードはコンパイラと同様に -encoding で
+指定する。他のオプションは、<span class="innerCaution">javadoc -help</span>で参照できる。実行後に多くの html ファイルが生成されるが、
+index.html が最初に開くルートのページとして生成される。</p>
+<p><a href="./GUI/index.html">こちらのリンク</a>に、課題４のサンプルプログラムから生成された javadoc の例を示す。</p>
+<p class="innerCaution">これまでに自分で作成したプログラムに対して、javadoc を実行してみる事！</p>
+<h2>アノテーション</h2>
+<p>
+ソースコードに対するドキュメント情報として必要なものとして、著作権情報、プログラムの作成者、作成日時、更新日時、バージョンといったものが考えられる。他には、マルチスレッドプログラミングで使用されることを考慮したスレッドセーフなプログラムなのかを分かるようにしたり、プログラムが依存している設定ファイルの情報もソースコードに記載したい場合がある。こういった情報を統一的にコードへ埋め込みたい場合に、<b>アノテーション</b>という形でソースコードへ注釈を付ける機能が提供されている。</p>
+<p>
+アノテーションがプログラムのメタデータである点に注目すると、開発者用のドキュメント情報をソースコードへ記述するためだけではなく、「プログラムの開発環境や実行環境にとって有用な情報を埋め込む」といった用途でも使用できる。
+</p>
+<p>
+アノテーションには、以下のものが用意されている。
+</p>
+<ol>
+<li><b>Override</b>：スーパークラスのメソッドをオーバーライドするという注釈</li>
+<li><b>Deprecated</b>：クラスやメソッドが非推奨であるという注釈</li>
+<li><b>SuppressWarnings</b>：コンパイル時の警告を抑制するという注釈</li>
+</ol>
+<p>
+参考リンク：
+<ul>
+<li><a href="http://www.syboos.jp/java/doc/annotation-summary.html?page=1">＜＜Java標準アノテーションの使い方＞＞</a></li>
+<li><a href="http://www.atmarkit.co.jp/fjava/rensai4/java5eclipse22/java5eclipse22_3.html">＜＜独自のアノテーション型の作り方＞＞</a></li>
+</ul>
+</p>
+
+<br /><br />
+<h1 id="enum">７．enum の高度な使用法</h1>
+<h2>enum キーワードと列挙型の基礎</h2>
+<p>
+Javaには列挙を簡単に表現するために「enum」というキーワードが用意されており、これで宣言される型は参照型である「列挙型（enumerated type）」と呼ばれる。または、enumというキーワードを使うため、「enum型（enum type）」とも呼ばれる。
+</p>
+<h2>列挙型の宣言方法</h2>
+<p>enumは特殊な種類のクラスと見なされ、その構文は、
+<pre>
+クラス修飾子 enum 識別子 { 列挙定数, 列挙定数, ... }
+</pre>
+で定義される。例えば季節を列挙型で宣言すると以下の様になる。
+<pre>
+public enum Season { SPRING, SUMMER, FALL, WINTER }
+</pre>
+ここで、列挙定数とは「enum定数」とも呼ばれ、上記に例では SPRING, SUMMER 等がこれに相当し、大文字で書くのが一般的である。
+（列挙定数の最後の要素に対して「,」を付けることが可能であり、{ SPRING, SUMMER, FALL, WINTER, } の様にも記述できる）
+</p>
+
+<p>列挙型は以下の特徴を有する</p>
+<ul class="Point">
+<li>暗黙裏に「java.lang.Enum」というクラスを継承する</li>
+<li>「java.io.Serializable」「java.lang.Comparable」というインタフェースクラスを実装している</li>
+<li>コンストラクタが private なので、列挙型は継承できない（インタフェースとしての実装なら可能）</li>
+<li>列挙定数は暗黙裏にそれを宣言している列挙型と同じ型のstaticフィールドとなる</li>
+<li>以下の二つの static メソッドを有する
+  <ul>
+    <li>public static E[] values(); // 宣言された順序で各列挙定数を含む配列を返す      </li>
+    <li>public static E valueOf(String name); // 指定された名前を持つ列挙定数を返す </li>
+  </ul>
+</li>
+</ul>
+
+<p>列挙型もクラスなので、メソッドやフィールを定義する事もできる。以下に、上記の Season クラスにフィールドとメソッドを追加し、日本語の表記を併せ持つクラスへと拡張した例を示す。
+<a href="http://www.atmarkit.co.jp/fjava/rensai4/java5eclipse21/java5eclipse21_3.html">＜＜メソッドやフィールドを有する列挙型の詳細へのリンク＞＞</a>
+</p>
+<u>メソッドやフィールドを有する列挙型の例</u>
+<pre class="SourceCode">
+public class EnumJapaneseSeasonList {
+    enum Season {
+	SPRING("春"), SUMMER("夏"), FALL("秋"), WINTER("冬");  
+        private String name;
+        Season(String name) { this.name = name; }
+        public String getName() { return name; }
+    }
+    public void exec() {
+        for (Season s : Season.values()) {
+          System.out.println(s + ":" + s.getName());
+        }
+    }
+    public static void main(String[] args) {
+      EnumJapaneseSeasonList app = new EnumJapaneseSeasonList();
+      app.exec();
+    }
+}
+</pre>
+
+<u>実行結果</u>
+<pre class="CommandLine">
+SPRING:春
+SUMMER:夏
+FALL:秋
+WINTER:冬
+</pre> 
+
+<br /><br />
+<h1 id="Reflection">８．リフレクション</h1>
+Reflection の使用法
+リフレクションは「プログラムの構造を扱う技術」であり、クラス内のフィールドやメッソドの
+値を汎用的に読み出す機能を提供します。
+
+例えば、以下のメソッド show は任意のクラスに対してその名前と全てのフィールドの名前と値を出力するメソッドである。
+
+<pre class="SourceCode">
+void show(Object o) throws IllegalArgumentException, IllegalAccessException {
+  Class clazz = o.getClass();
+  System.out.println("クラス名:" + clazz.getName());
+  for(Field field : clazz.getFields()) {
+    String fname = field.getName();
+    Object val = field.get(o);
+    System.out.println("フィールド:" + fname + ":" + val);
+  }
+  for (Method method : clazz.getMethods()) {
+    String mname = method.getName();
+    System.out.println("メソッド:" + mname); 
+  }
+}
+</pre>
+<ul class="Point">
+<li>Class クラスは Java のクラス構造を表現したクラスであり、そのオブジェクトから様々なクラスの情報を取得できる</li>
+<ul>
+<li>Object クラスの getClass メソッドにより Class オブジェクトを取得できる</li>
+<li>Class クラスの getName() メソッドで、クラスの名前を取得できる</li>
+<li>Class クラスの getFields() メソッドで、全フィールドの値を取得できる</li>
+<li>Class クラスの getMethods() メソッドで、全メソッドの値を取得できる</li>
+</ul>
+<li>Field クラスは、クラスのフィールドの情報を表現したクラスであり、そのオブジェクトから様々なフィールドの情報を取得できる</li>
+<ul>
+<li>Field クラスの getName() メソッドで、フィールドの名前を取得できる</li>
+<li>Field クラスの get() メソッドで、フィールドに代入されたオブジェクトの値を取得できる</li>
+</ul>
+<li>Method クラスは、クラスのメソッドの情報を表現したクラスであり、そのオブジェクトから様々なメソッドの情報を取得できる</li>
+</ul>
+<p>
+次に、リフレクションを使ってメソッドを呼び出す手法は、
+<pre class="SourceCode">
+class Add {
+  public String stringAdd(String a, String b) {
+    return a + b;
+  }
+}
+</pre>
+という、メソッド stringAdd を有するクラス Add に対して、
+<pre class="SourceCode">
+Add add = new Add();
+Class clazz = add.getClass();
+Method method = clazz.getMethod("stringAdd", new Class[] {String.class,String.class});
+String v = (String)method.invoke(add, new String[] {"Toyohashi ","Univ"});
+System.out.println(v);
+</pre>
+によって、Class クラスのメソッド getMethod を介して、add オブジェクトからメソッド stringAdd を呼び出す事ができる。
+リフレクションに関する詳細な説明は<a href="http://java.keicode.com/lang/reflection.php"> Java 入門（リフレクション）</a>等を参照の事
+</p>
+
+<br /><br />
+
+<h1 id="JNA">９．ネイティブコードへのアクセス</h1>
+
+<h2>JNA によるＣ言語との連携</h2>
+<p>JNA (Java Native Access)とは、Java からＣ言語／Ｃ＋＋のネイティブライブラリAPIを呼び出す仕組みであり、JNI（Java Naitive Interafce）と呼ばれる
+技術に基づいて実装されている。JNA は JNI で必要とされた煩雑な技術を簡素化し、より使い易くしたものと位置づけられ、以下の機能を有する。</p>
+<ul>
+<li>ネイティブライブラリのマッピング</li>
+<li>ネイティブメソッド（API）のマッピング</li>
+<li>データのマーシャリング（各プログラミング言語のネイティブなデータ表現を共通データ形式に変換する処理）</li>
+</ul>
+<p class="Caution">JNA を利用するには、jna.jar パッケージを用いるだけで良い。</p>
+
+<p>ここでは簡単な例として、Ｃ言語の標準ライブラリである printf 関数を呼び出す例を示す。</p>
+
+<u>Ｃ言語の printf 関数を呼び出す例</u>
+<pre class="SourceCode">
+import com.sun.jna.Library;
+import com.sun.jna.Native;
+ 
+public class HelloWorld {
+	public interface CLibrary extends Library {
+		// Windows のネイティブライブラリ msvcrt.dll を読み込む
+		CLibrary INSTANCE = (CLibrary) Native.loadLibrary("msvcrt" , CLibrary.class);
+		// 呼び出すネイティブ API の Java メソッドを宣言（メソッド名とシグネチャは、ネイティブAPIと一致させる）
+		void printf(String format, Object... args);
+	}
+
+	public static void main(String[] args) {
+		CLibrary.INSTANCE.printf("Hello, World\n");
+	}
+}
+</pre>
+<p>自作したネイティブライブラリを読み込む際には、msvcrt の部分にそのライブラリ名を記述する。ただし、
+<b class="innerCaution">Mac OS の開発環境では、動的ライブラリ .dylib </b>を使用する。</p>
+<p>
+<a href="http://www.atmarkit.co.jp/fjava/special/jna/jna_2.html">＜＜JNA を利用する基本的な流れへのリンク＞＞</a><br />
+<a href="http://www.atmarkit.co.jp/fjava/special/jna/jna_3.html">＜＜構造体型、配列型のマッピングへのリンク＞＞</a>
+</p>
+
+<br /><br />
+
+<h1 id="Struts">１０．高度な開発環境</h1>
+<p>Java は Web アプリケーションを開発するために考案された言語であるが、その効率的な開発やテストのための種々のツールが提供されている。
+将来、Web 関連のシステム開発者を目指す人は、以下の様な関連技術の独習を勧める。</p>
+<h3>Struts</h3>
+<p>
+Java を用いて Web アプリケーションを開発する際に用いられる基盤（フレームワーク）であり、MVC（Model, View, Controller）と呼ばれるソフトウェア設計モデルに
+基づいた、サーブレットや JSP を組み合わせた以下の諸機能を提供する：</p>
+<ul>
+<li>リクエストを適切なクラスに割り振るコントローラサーブレット</li>
+<li>JSP で利用するタグライブラリ</li>
+<li>JavaBeans プロパティの自動設定機能</li>
+<li>表示の国際化の支援</li>
+</ul>
+<p>
+Struts は Apache Software License というライセンス規約に基づいて公開されており、誰でも自由かつ無償で利用・改変・再配布ができる。</p>
+<p><a href="http://www.javaroad.jp/opensource/js_struts2.htm">＜＜Struts の概要へのリンク＞＞</a></p>
+
+<h3>JUnit</h3>
+<p>JUnitとは、eXtreme Programming（XP）の起案者であるケント・ベックにより開発された単体テスト向けのフレームワークであり、テスト処理のための便利なメソッドと管理機能が用意されている。</p>
+<p>
+JUnit により正確・効率的なテスト工程が実現でき、プログラムの仕様変更に対しても、JUnit でのテストにより変更の適切性や他のプログラムへの影響を確認できる。また、テスト仕様を JUnit で統一すれば、他の開発者との意思疎通もスムーズに行える。</p>
+<p>JUnit は単体での利用もできるが、Eclipse や NetBeans 等の統合開発環境(IDE)との連携もできる。</p>
+
+<p><a href="http://www.javaroad.jp/opensource/js_junit2.htm">＜＜JUnit の概要へのリンク＞＞</a></p>
+
+<h3>スクリプト言語との連携</h3>
+<p>Java はコンパイル言語であり、型を厳密に定義する静的片付け言語であり曖昧性を除去することでバグを生じ難くしている。一方、スクリプト言語と呼ばれる Ruby や JavaScript 等は、コンパイルの不要な動的型付け言語であり、型の宣言が少ない簡潔な記述が可能になる。これら両者の良い点を同時に活かすために、Java 仮想マシン（JVM）上でスクリプト言語を動作させるインタプリタが開発されている。その代表的なものに、Ruby、Python、および JavaScript を動かすための、JRuby、Jython、および　Rhino が存在する。</p>
+<ul>
+<li><a href="http://codezine.jp/article/detail/1647?p=1">JRubyチュートリアル</a></li>
+<li><a href="http://codezine.jp/article/detail/1714">Java meets Python</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Rhino_documentation">Rhino documentation（英語）</a></li>
+</ul>
+
+</div>
+</body>
+</html>
