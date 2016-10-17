@@ -7,15 +7,19 @@ public class Car extends ArrayList<HashMap<String, String>> {
 
 	enum  LogicalMode {AND, OR};
 
-	private String[][] cars;
-
 	public Car(String fileName) {
 		TextFileReader textFileReader = new TextFileReader(fileName);
 		ArrayList<String> lines = textFileReader.read();
 
-		cars = new String[lines.size()][];
-		for (int i = 0; i < lines.size(); i++)
-			cars[i] = lines.get(i).split(",");
+		for (int i = 0; i < lines.size(); i++) {
+			String line = lines.get(i);
+			HashMap<String, String> hashMap = new HashMap<String, String>();
+
+			String[] tokens = line.split(",");
+			for (int j = 0; j < tokens.length; j++)
+				hashMap.put(keys[j], tokens[j]);
+			add(hashMap);
+		}
 	}
 
 	public int[] analyze(String query[]) {
