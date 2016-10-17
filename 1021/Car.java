@@ -5,6 +5,8 @@ public class Car extends ArrayList<HashMap<String, String>> {
 	static String evalLabel[] = {"unacc", "acc", "good", "vgood"};
 	static int columnNum = 7;
 
+	enum  LogicalMode {AND, OR};
+
 	private String[][] cars;
 
 	public Car(String fileName) {
@@ -17,12 +19,23 @@ public class Car extends ArrayList<HashMap<String, String>> {
 	}
 
 	public int[] analyze(String query[]) {
-		for (String[] car : cars) {
-			for (String token : car)
-				System.out.print("[" + token + "]");
+		int[] results = new int[evalLabel.length];
+
+		LogicalMode mode = LogicalMode.OR;
+		for (String string : query) {
+			if (string.equals("and")) {
+				mode = LogicalMode.AND;
+				continue;
+			}
+			if (string.equals("or")) {
+				mode = LogicalMode.OR;
+				continue;
+			}
+			String[] tokens = string.split("=");
+			for (String token : tokens)
+				System.out.println(token);
 			System.out.println();
 		}
-		int results[] = new int[evalLabel.length];
 
 		return results;
 	}
