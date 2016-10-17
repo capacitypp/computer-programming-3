@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class TextFileReader {
 	FileReader fileReader = null;
@@ -13,6 +14,23 @@ public class TextFileReader {
 		catch (FileNotFoundException e) {
 			System.out.println("ファイルが見つかりません");
 		}
+	}
+
+	public ArrayList<String> read() {
+		BufferedReader bufferedReader = new BufferedReader(fileReader);
+		String line;
+		ArrayList<String> lines = new ArrayList<String>();
+
+		try {
+			while ((line = bufferedReader.readLine()) != null)
+				lines.add(line);
+			bufferedReader.close();
+		}
+		catch (IOException e) {
+			System.out.println("入出力エラーが発生しました");
+		}
+
+		return lines;
 	}
 
 	public void readAndDisplay() {
