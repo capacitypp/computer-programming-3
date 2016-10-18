@@ -104,7 +104,16 @@ public class GUI extends JFrame {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			label.setText(title + " : " + e.getActionCommand() + "のメニューが選択されました！");
+			String string = title + "=" + e.getActionCommand();
+			label.setText(string);
+			if (query.size() != 0)
+				query.add((getLogicalMenuIndex() == 0) ? "or" : "and");
+			query.add(string);
+
+			string = "";
+			for (String str : query)
+				string += str + " ";
+			label.setText(string);
 		}
 	}
 
