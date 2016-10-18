@@ -1,13 +1,19 @@
 import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 
 public class GUI extends JFrame {
 	private JLabel label;
 	private JButton button;
 	private JMenuBar menubar;
 
+	private ArrayList<String> query;
+	private JRadioButtonMenuItem[] radioButtons;
+
 	public GUI() {
+		query = new ArrayList<String>();
+
 		String[] menuTitles = {"buying", "maint", "persons", "luggage", "safety", "eval"};
 		String[][] subTitles = {
 			{"vhigh", "high", "med", "low"},
@@ -41,6 +47,7 @@ public class GUI extends JFrame {
 		menubar.add(menu);
 
 		menu = new JMenu("論理演算");
+		radioButtons = new JRadioButtonMenuItem[logicalMenuTitles.length];
 		ButtonGroup group = new ButtonGroup();
 		for (int n = 0; n < logicalMenuTitles.length; n++) {
 			JRadioButtonMenuItem item = new JRadioButtonMenuItem(logicalMenuTitles[n]);
@@ -49,6 +56,7 @@ public class GUI extends JFrame {
 				item.setSelected(true);
 			menu.add(item);
 			group.add(item);
+			radioButtons[n] = item;
 		}
 		menubar.add(menu);
 
@@ -100,9 +108,17 @@ public class GUI extends JFrame {
 		}
 	}
 
+	private int getLogicalMenuIndex() {
+		for (int i = 0; i < radioButtons.length; i++)
+			if (radioButtons[i].isSelected())
+				return i;
+		return 0;
+	}
+
 	class LogicalMenuActionListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			label.setText(e.getActionCommand());
+			if ((query.size() == 0) && (getLogicalMenuIndex() != 0))
+				radioButtons[0].setSelected(true);
 		}
 	}
 
