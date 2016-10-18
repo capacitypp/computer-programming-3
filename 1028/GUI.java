@@ -4,7 +4,7 @@ import java.awt.event.*;
 import java.util.ArrayList;
 
 public class GUI extends JFrame {
-	private JLabel label;
+	private JLabel labelQuery;
 	private JButton button;
 	private JMenuBar menubar;
 
@@ -14,7 +14,7 @@ public class GUI extends JFrame {
 	public GUI() {
 		query = new ArrayList<String>();
 
-		String[] menuTitles = {"buying", "maint", "persons", "luggage", "safety", "eval"};
+		String[] menuTitles = {"buying", "maint", "doors", "persons", "luggage", "safety", "eval"};
 		String[][] subTitles = {
 			{"vhigh", "high", "med", "low"},
 			{"vhigh", "high", "med", "low"},
@@ -26,10 +26,10 @@ public class GUI extends JFrame {
 		};
 		String[] logicalMenuTitles = {"論理和", "論理積"};
 
-		label = new JLabel("Swingnの世界へようこそ!");
-		add(label, BorderLayout.NORTH);
+		labelQuery = new JLabel("query : ");
+		add(labelQuery, BorderLayout.NORTH);
 
-		button = new JButton("OK");
+		button = new JButton("実行");
 		button.addActionListener(new ButtonActionListener());
 		add(button, BorderLayout.SOUTH);
 
@@ -98,7 +98,10 @@ public class GUI extends JFrame {
 
 	class ButtonActionListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			label.setText("ボタンが押されました！");
+			Car car = new Car("car.csv");
+			int evals[] = car.analyze(query.toArray(new String[0]));
+			for (int i = 0; i < evals.length; i++)
+				System.out.printf("%d,\n", evals[i]);
 		}
 	}
 
@@ -111,15 +114,15 @@ public class GUI extends JFrame {
 
 		public void actionPerformed(ActionEvent e) {
 			String string = title + "=" + e.getActionCommand();
-			label.setText(string);
+			labelQuery.setText(string);
 			if (query.size() != 0)
 				query.add((getLogicalMenuIndex() == 0) ? "or" : "and");
 			query.add(string);
 
-			string = "";
+			string = "query : ";
 			for (String str : query)
 				string += str + " ";
-			label.setText(string);
+			labelQuery.setText(string);
 		}
 	}
 
@@ -140,7 +143,8 @@ public class GUI extends JFrame {
 	class ResetMenuActionListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			query = new ArrayList<String>();
-			label.setText("");
+			radioButtons[0].setSelected(true);
+			labelQuery.setText("query : ");
 		}
 	}
 
