@@ -60,6 +60,12 @@ public class GUI extends JFrame {
 		}
 		menubar.add(menu);
 
+		menu = new JMenu("操作");
+		JMenuItem item = new JMenuItem("リセット");
+		item.addActionListener(new ResetMenuActionListener());
+		menu.add(item);
+		menubar.add(menu);
+
 		setJMenuBar(menubar);
 
 		ArcGraphics arcG = new ArcGraphics();
@@ -128,6 +134,13 @@ public class GUI extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			if ((query.size() == 0) && (getLogicalMenuIndex() != 0))
 				radioButtons[0].setSelected(true);
+		}
+	}
+
+	class ResetMenuActionListener implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			query = new ArrayList<String>();
+			label.setText("");
 		}
 	}
 
