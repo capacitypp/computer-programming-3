@@ -67,6 +67,26 @@ public class GUI extends JFrame {
 		JMenuItem item = new JMenuItem("リセット");
 		item.addActionListener(new ResetMenuActionListener());
 		menu.add(item);
+		item = new JMenuItem("書込");
+		item.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (result == null)
+					return;
+				Result.write(result, "result.dat");
+			}
+		});
+		menu.add(item);
+		item = new JMenuItem("読込");
+		item.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				labelQuery.setText("query : ");
+				result = Result.read("result.dat");
+				arcG.updateUI();
+			}
+		});
+		menu.add(item);
 		menubar.add(menu);
 
 		setJMenuBar(menubar);
