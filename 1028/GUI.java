@@ -11,11 +11,11 @@ public class GUI extends JFrame {
 
 	private ArrayList<String> query;
 	private JRadioButtonMenuItem[] radioButtons;
-	private int[] evals;
+	private Result result;
 
 	public GUI() {
 		query = new ArrayList<String>();
-		evals = null;
+		result = null;
 
 		String[] menuTitles = {"buying", "maint", "doors", "persons", "luggage", "safety", "eval"};
 		String[][] subTitles = {
@@ -89,20 +89,20 @@ public class GUI extends JFrame {
 		}
 
 		public void paint(Graphics g) {
-			if (evals == null)
+			if (result == null)
 				return;
 			int sum = 0;
-			for (int eval : evals)
-				sum += eval;
-			int[] degs = new int[evals.length];
+			for (String key : itemTitle)
+				sum += result.get(key);
+			int[] degs = new int[itemTitle.length];
 			for (int i = 0; i < degs.length; i++)
-				degs[i] = evals[i] * 360 / sum;
+				degs[i] = result.get(itemTitle[i]) * 360 / sum;
 			sum = 0;
 			for (int deg : degs)
 				sum += deg;
 			degs[degs.length - 1] += 360 - sum;
 			int offset = 0, deg;
-			for (int i = 0; i < evals.length; i++) {
+			for (int i = 0; i < degs.length; i++) {
 				g.setColor(col[i]);
 				deg = degs[i];
 				g.fillArc(75, 50, 200, 200, offset, deg);
@@ -115,9 +115,7 @@ public class GUI extends JFrame {
 	class ButtonActionListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			Car car = new Car("car.csv");
-			evals = car.analyze(query.toArray(new String[0]));
-			for (int i = 0; i < evals.length; i++)
-				System.out.printf("%d,\n", evals[i]);
+			result = car.analyze(query.toArray(new String[0]));
 			arcG.updateUI();
 		}
 	}
@@ -162,7 +160,7 @@ public class GUI extends JFrame {
 			query = new ArrayList<String>();
 			radioButtons[0].setSelected(true);
 			labelQuery.setText("query : ");
-			evals = null;
+			result = null;
 			arcG.updateUI();
 		}
 	}

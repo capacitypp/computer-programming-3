@@ -56,8 +56,9 @@ public class Car extends ArrayList<HashMap<String, String>> {
 	}
 
 	/* 検索処理 */
-	public int[] analyze(String query[]) {
+	public Result analyze(String query[]) {
 		int[] results = new int[evalLabel.length];
+		Result result = new Result();
 
 		ArrayList<Integer> list = new ArrayList<Integer>();
 		/* コードの簡略化のため、初めはORとする */
@@ -95,14 +96,10 @@ public class Car extends ArrayList<HashMap<String, String>> {
 			}
 		}
 
-		return results;
-	}
+		for (int i = 0; i < evalLabel.length; i++)
+			result.put(evalLabel[i], results[i]);
 
-	public static void main(String[] args) {
-		Car car = new Car("car.csv");
-		int evals[] = car.analyze(args);
-		for (int i = 0; i < evals.length; i++)
-			System.out.printf("%s = %d,\n", evalLabel[i], evals[i]);
+		return result;
 	}
 }
 

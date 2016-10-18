@@ -1,4 +1,4 @@
-OBJS=GUI.class Car.class TextFileReader.class
+OBJS=GUI.class Car.class TextFileReader.class Result.class
 TARGET=163334_3.jar
 
 all : $(OBJS)
