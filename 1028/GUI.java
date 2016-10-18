@@ -69,23 +69,45 @@ public class GUI extends JFrame {
 		menu.add(item);
 		item = new JMenuItem("書込");
 		item.addActionListener(new ActionListener(){
+			private JFrame frame;
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (result == null)
 					return;
-				Result.write(result, "result.dat");
+				JFileChooser filechooser = new JFileChooser();
+
+				int selected = filechooser.showSaveDialog(frame);
+				if (selected != JFileChooser.APPROVE_OPTION)
+					return;
+
+				Result.write(result, filechooser.getSelectedFile().getAbsolutePath());
 			}
-		});
+			public ActionListener setFrame(JFrame frame) {
+				this.frame = frame;
+				return this;
+			}
+		}.setFrame(this));
 		menu.add(item);
 		item = new JMenuItem("読込");
 		item.addActionListener(new ActionListener(){
+			private JFrame frame;
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				JFileChooser filechooser = new JFileChooser();
+
+				int selected = filechooser.showOpenDialog(frame);
+				if (selected != JFileChooser.APPROVE_OPTION)
+					return;
+
 				labelQuery.setText("query : ");
-				result = Result.read("result.dat");
+				result = Result.read(filechooser.getSelectedFile().getAbsolutePath());
 				arcG.updateUI();
 			}
-		});
+			public ActionListener setFrame(JFrame frame) {
+				this.frame = frame;
+				return this;
+			}
+		}.setFrame(this));
 		menu.add(item);
 		menubar.add(menu);
 
