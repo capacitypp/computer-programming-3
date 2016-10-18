@@ -7,12 +7,15 @@ public class GUI extends JFrame {
 	private JLabel labelQuery;
 	private JButton button;
 	private JMenuBar menubar;
+	private ArcGraphics arcG;
 
 	private ArrayList<String> query;
 	private JRadioButtonMenuItem[] radioButtons;
+	private int[] evals;
 
 	public GUI() {
 		query = new ArrayList<String>();
+		evals = null;
 
 		String[] menuTitles = {"buying", "maint", "doors", "persons", "luggage", "safety", "eval"};
 		String[][] subTitles = {
@@ -68,7 +71,7 @@ public class GUI extends JFrame {
 
 		setJMenuBar(menubar);
 
-		ArcGraphics arcG = new ArcGraphics();
+		arcG = new ArcGraphics();
 		add(arcG, BorderLayout.CENTER);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLocation(400, 200);
@@ -78,17 +81,30 @@ public class GUI extends JFrame {
 	}
 
 	class ArcGraphics extends JPanel {
-		private Color col[] = {Color.RED, Color.GREEN, Color.BLUE, Color.CYAN, Color.MAGENTA, Color.YELLOW};
-		private String itemTitle[] = {"項目1", "項目2", "項目3", "項目4", "項目5", "項目6"};
+		private Color col[] = {Color.RED, Color.GREEN, Color.BLUE, Color.CYAN};
+		private String itemTitle[] = {"unacc", "acc", "good", "vgood"};
 
 		public ArcGraphics() {
 			setSize(300, 250);
 		}
 
 		public void paint(Graphics g) {
-			int offset = 0, deg = 30;
-			for (int i = 0; i < itemTitle.length; i++) {
+			if (evals == null)
+				return;
+			int sum = 0;
+			for (int eval : evals)
+				sum += eval;
+			int[] degs = new int[evals.length];
+			for (int i = 0; i < degs.length; i++)
+				degs[i] = evals[i] * 360 / sum;
+			sum = 0;
+			for (int deg : degs)
+				sum += deg;
+			degs[degs.length - 1] += 360 - sum;
+			int offset = 0, deg;
+			for (int i = 0; i < evals.length; i++) {
 				g.setColor(col[i]);
+				deg = degs[i];
 				g.fillArc(75, 50, 200, 200, offset, deg);
 				g.drawString(itemTitle[i], 10, 50 + 20 * i);
 				offset += deg;
@@ -99,9 +115,10 @@ public class GUI extends JFrame {
 	class ButtonActionListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			Car car = new Car("car.csv");
-			int evals[] = car.analyze(query.toArray(new String[0]));
+			evals = car.analyze(query.toArray(new String[0]));
 			for (int i = 0; i < evals.length; i++)
 				System.out.printf("%d,\n", evals[i]);
+			arcG.updateUI();
 		}
 	}
 
@@ -145,6 +162,8 @@ public class GUI extends JFrame {
 			query = new ArrayList<String>();
 			radioButtons[0].setSelected(true);
 			labelQuery.setText("query : ");
+			evals = null;
+			arcG.updateUI();
 		}
 	}
 
