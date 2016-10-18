@@ -8,13 +8,29 @@ public class GUI extends JFrame {
 	private JMenuBar menubar;
 
 	public GUI() {
+		String[] menuTitles = {"buying", "maint", "persons", "luggage", "safety", "eval"};
+		String[][] subTitles = {
+			{"vhigh", "high", "med", "low"},
+			{"vhigh", "high", "med", "low"},
+			{"2", "3", "4", "5more"},
+			{"2", "4", "more"},
+			{"small", "med", "big"},
+			{"low", "med", "high"},
+			{"unacc", "acc", "good", "vgood"},
+		};
+
 		label = new JLabel("Swingnの世界へようこそ!");
 		button = new JButton("OK");
-		String[] menuTitle = {"項目1", "項目2", "項目3"};
 		menubar = new JMenuBar();
-		JMenu menu = new JMenu("メニュー");
-		for (int n = 0; n < menuTitle.length; n++)
-			menu.add(new JMenuItem(menuTitle[n]));
+		JMenu menu = new JMenu("項目");
+		for (int n = 0; n < menuTitles.length; n++) {
+			JMenu subMenu = new JMenu(menuTitles[n]);
+			for (int i = 0; i < subTitles[n].length; i++) {
+				JMenuItem item = new JMenuItem(subTitles[n][i]);
+				subMenu.add(item);
+			}
+			menu.add(subMenu);
+		}
 		menubar.add(menu);
 
 		add(label, BorderLayout.NORTH);
