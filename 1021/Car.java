@@ -22,9 +22,38 @@ public class Car extends ArrayList<HashMap<String, String>> {
 		}
 	}
 
+	private ArrayList<Integer> search(String key, String value) {
+		ArrayList<Integer> arrayList = new ArrayList<Integer>();
+		for (int i = 0; i < size(); i++) {
+			HashMap<String, String> hashMap = get(i);
+			String ret = hashMap.get(key);
+			if (!ret.equals(value))
+				continue;
+			arrayList.add(i);
+		}
+		return arrayList;
+	}
+
+	private ArrayList<Integer> or(ArrayList<Integer> list1, ArrayList<Integer> list2) {
+		ArrayList<Integer> list = new ArrayList<Integer>(list1);
+		for (int idx : list2)
+			if (!list.contains(idx))
+				list.add(idx);
+		return list;
+	}
+
+	private ArrayList<Integer> and(ArrayList<Integer> list1, ArrayList<Integer> list2) {
+		ArrayList<Integer> list = new ArrayList<Integer>();
+		for (int idx : list2)
+			if (list1.contains(idx))
+				list.add(idx);
+		return list;
+	}
+
 	public int[] analyze(String query[]) {
 		int[] results = new int[evalLabel.length];
 
+		ArrayList<Integer> list = new ArrayList<Integer>();
 		LogicalMode mode = LogicalMode.OR;
 		for (String string : query) {
 			if (string.equals("and")) {
@@ -36,9 +65,21 @@ public class Car extends ArrayList<HashMap<String, String>> {
 				continue;
 			}
 			String[] tokens = string.split("=");
-			for (String token : tokens)
-				System.out.println(token);
-			System.out.println();
+			ArrayList<Integer> ret = search(tokens[0], tokens[1]);
+			if (mode == LogicalMode.AND)
+				list = and(list, ret);
+			else
+				list = or(list, ret);
+		}
+		for (int idx : list) {
+			HashMap<String, String> hashMap = get(idx);
+			String value = hashMap.get("eval");
+			for (int i = 0; i < evalLabel.length; i++) {
+				if (!value.equals(evalLabel[i]))
+					continue;
+				results[i]++;
+				break;
+			}
 		}
 
 		return results;
