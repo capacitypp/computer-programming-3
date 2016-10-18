@@ -18,37 +18,45 @@ public class GUI extends JFrame {
 			{"low", "med", "high"},
 			{"unacc", "acc", "good", "vgood"},
 		};
+		String[] logicalMenuTitles = {"論理和", "論理積"};
 
 		label = new JLabel("Swingnの世界へようこそ!");
+		add(label, BorderLayout.NORTH);
+
 		button = new JButton("OK");
+		button.addActionListener(new ButtonActionListener());
+		add(button, BorderLayout.SOUTH);
+
 		menubar = new JMenuBar();
 		JMenu menu = new JMenu("項目");
 		for (int n = 0; n < menuTitles.length; n++) {
 			JMenu subMenu = new JMenu(menuTitles[n]);
 			for (int i = 0; i < subTitles[n].length; i++) {
 				JMenuItem item = new JMenuItem(subTitles[n][i]);
+				item.addActionListener(new MenuActionListener(menuTitles[n]));
 				subMenu.add(item);
 			}
 			menu.add(subMenu);
 		}
 		menubar.add(menu);
 
-		add(label, BorderLayout.NORTH);
-		add(button, BorderLayout.SOUTH);
+		menu = new JMenu("論理演算");
+		for (int n = 0; n < logicalMenuTitles.length; n++) {
+			JMenuItem item = new JMenuItem(logicalMenuTitles[n]);
+			item.addActionListener(new LogicalMenuActionListener());
+			menu.add(item);
+		}
+		menubar.add(menu);
+
+		setJMenuBar(menubar);
+
 		ArcGraphics arcG = new ArcGraphics();
 		add(arcG, BorderLayout.CENTER);
-		setJMenuBar(menubar);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLocation(400, 200);
 		setSize(300, 300);
 		setVisible(true);
 
-		button.addActionListener(new ButtonActionListener());
-		menu = menubar.getMenu(0);
-		for (int i = 0; i < menu.getItemCount(); i++) {
-			JMenuItem item = menu.getItem(i);
-			item.addActionListener(new MenuActionListener());
-		}
 	}
 
 	class ArcGraphics extends JPanel {
@@ -77,8 +85,20 @@ public class GUI extends JFrame {
 	}
 
 	class MenuActionListener implements ActionListener {
+		private String title;
+
+		MenuActionListener(String title) {
+			this.title = title;
+		}
+
 		public void actionPerformed(ActionEvent e) {
-			label.setText(e.getActionCommand() + "のメニューが選択されました！");
+			label.setText(title + " : " + e.getActionCommand() + "のメニューが選択されました！");
+		}
+	}
+
+	class LogicalMenuActionListener implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			label.setText(e.getActionCommand());
 		}
 	}
 
