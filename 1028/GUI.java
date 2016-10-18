@@ -41,10 +41,14 @@ public class GUI extends JFrame {
 		menubar.add(menu);
 
 		menu = new JMenu("論理演算");
+		ButtonGroup group = new ButtonGroup();
 		for (int n = 0; n < logicalMenuTitles.length; n++) {
-			JMenuItem item = new JMenuItem(logicalMenuTitles[n]);
+			JRadioButtonMenuItem item = new JRadioButtonMenuItem(logicalMenuTitles[n]);
 			item.addActionListener(new LogicalMenuActionListener());
+			if (n == 0)
+				item.setSelected(true);
 			menu.add(item);
+			group.add(item);
 		}
 		menubar.add(menu);
 
