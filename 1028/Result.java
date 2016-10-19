@@ -1,7 +1,9 @@
 import java.io.*;
 import java.util.*;
 
+/* Carクラスにおける検索結果クラス */
 public class Result extends HashMap<String, Integer> implements Serializable {
+	/* ファイルへの書き込み */
 	static void write(Result result, String fpath) {
 		try {
 			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fpath));
@@ -12,6 +14,7 @@ public class Result extends HashMap<String, Integer> implements Serializable {
 		}
 	}
 
+	/* ファイルからの読み込み */
 	static Result read(String fpath) {
 		Result result = null;
 		try {

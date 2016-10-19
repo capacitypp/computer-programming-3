@@ -36,6 +36,7 @@ public class GUI extends JFrame {
 		button.addActionListener(new ButtonActionListener());
 		add(button, BorderLayout.SOUTH);
 
+		/* メニューに項目を登録する */
 		menubar = new JMenuBar();
 		JMenu menu = new JMenu("項目");
 		for (int n = 0; n < menuTitles.length; n++) {
@@ -49,6 +50,7 @@ public class GUI extends JFrame {
 		}
 		menubar.add(menu);
 
+		/* メニューに論理演算の種類を登録する */
 		menu = new JMenu("論理演算");
 		radioButtons = new JRadioButtonMenuItem[logicalMenuTitles.length];
 		ButtonGroup group = new ButtonGroup();
@@ -63,6 +65,7 @@ public class GUI extends JFrame {
 		}
 		menubar.add(menu);
 
+		/* メニューにリセット・書込・読込を登録する */
 		menu = new JMenu("操作");
 		JMenuItem item = new JMenuItem("リセット");
 		item.addActionListener(new ResetMenuActionListener());
@@ -76,6 +79,7 @@ public class GUI extends JFrame {
 					return;
 				JFileChooser filechooser = new JFileChooser();
 
+				/* 書き込み対象のファイルを選択する */
 				int selected = filechooser.showSaveDialog(frame);
 				if (selected != JFileChooser.APPROVE_OPTION)
 					return;
@@ -95,6 +99,7 @@ public class GUI extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser filechooser = new JFileChooser();
 
+				/* 読み込み対象のファイルを選択する */
 				int selected = filechooser.showOpenDialog(frame);
 				if (selected != JFileChooser.APPROVE_OPTION)
 					return;
@@ -130,6 +135,7 @@ public class GUI extends JFrame {
 			setSize(300, 250);
 		}
 
+		/* 円グラフの描画処理 */
 		public void paint(Graphics g) {
 			if (result == null)
 				return;
@@ -137,17 +143,21 @@ public class GUI extends JFrame {
 			for (String key : itemTitle)
 				sum += result.get(key);
 			int[] degs = new int[itemTitle.length];
+			/* 検索結果を角度に変換する */
 			for (int i = 0; i < degs.length; i++)
 				degs[i] = result.get(itemTitle[i]) * 360 / sum;
 			sum = 0;
 			for (int deg : degs)
 				sum += deg;
+			/* int型の切り捨て誤差を補正する */
 			degs[degs.length - 1] += 360 - sum;
 			int offset = 0, deg;
+			/* 円グラフを描画する */
 			for (int i = 0; i < degs.length; i++) {
 				g.setColor(col[i]);
 				deg = degs[i];
 				g.fillArc(75, 50, 200, 200, offset, deg);
+				/* 各色の意味を文字列として表示する */
 				g.drawString(itemTitle[i], 10, 50 + 20 * i);
 				offset += deg;
 			}
@@ -156,6 +166,7 @@ public class GUI extends JFrame {
 
 	class ButtonActionListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
+			/* 検索する */
 			Car car = new Car("car.csv");
 			result = car.analyze(query.toArray(new String[0]));
 			arcG.updateUI();
@@ -170,6 +181,7 @@ public class GUI extends JFrame {
 		}
 
 		public void actionPerformed(ActionEvent e) {
+			/* 検索文字列を更新する */
 			String string = title + "=" + e.getActionCommand();
 			labelQuery.setText(string);
 			if (query.size() != 0)
@@ -184,6 +196,7 @@ public class GUI extends JFrame {
 	}
 
 	private int getLogicalMenuIndex() {
+		/* 論理和・論理積のどちらが選択されているかを、0か1で反す */
 		for (int i = 0; i < radioButtons.length; i++)
 			if (radioButtons[i].isSelected())
 				return i;
@@ -192,17 +205,24 @@ public class GUI extends JFrame {
 
 	class LogicalMenuActionListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
+			/* 一つも条件を設定していない状態では、論理積を選択できないようにする */
 			if ((query.size() == 0) && (getLogicalMenuIndex() != 0))
 				radioButtons[0].setSelected(true);
 		}
 	}
 
 	class ResetMenuActionListener implements ActionListener {
+		/* リセット処理 */
 		public void actionPerformed(ActionEvent e) {
+			/* 検索条件をリセットする */
 			query = new ArrayList<String>();
+			/* 論理和を選択する */
 			radioButtons[0].setSelected(true);
+			/* 表示している検索条件をリセットする */
 			labelQuery.setText("query : ");
+			/* 検索結果をnullに設定（描画処理のため） */
 			result = null;
+			/* 円グラフを再描画 */
 			arcG.updateUI();
 		}
 	}
