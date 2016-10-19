@@ -166,6 +166,8 @@ public class GUI extends JFrame {
 
 	class ButtonActionListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
+			if (query.size() == 0)
+				return;
 			/* 検索する */
 			Car car = new Car("car.csv");
 			result = car.analyze(query.toArray(new String[0]));
