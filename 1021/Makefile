@@ -10,5 +10,5 @@ clean :
 	$(RM) *.class
 
 release :
-	jar cvfm $(TARGET) MANIFEST.MF *.class *.java
+	jar cvfm $(TARGET) MANIFEST.MF *.class *.java car.csv
 
