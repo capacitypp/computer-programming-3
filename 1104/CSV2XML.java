@@ -56,6 +56,10 @@ public class CSV2XML {
 
 		ArrayList retrieved = null;
 		Car car = new Car("car.csv");
+		Result result = car.analyze(query, logic);
+		for (String key : result.keySet())
+			System.out.println(key + " : " + result.get(key));
+		/*
 		try {
 			Document doc = xml.createDoc(retrieved);
 			xml.saveXML("car.xml", doc);
@@ -63,6 +67,7 @@ public class CSV2XML {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
+		*/
 	}
 }
 

@@ -56,33 +56,27 @@ public class Car extends ArrayList<HashMap<String, String>> {
 	}
 
 	/* 検索処理 */
-	public Result analyze(String query[]) {
+	public Result analyze(HashMap<String, String> query, String logic) {
 		int[] results = new int[evalLabel.length];
 		Result result = new Result();
 
-		ArrayList<Integer> list = new ArrayList<Integer>();
-		/* コードの簡略化のため、初めはORとする */
+		ArrayList<Integer> list = null;
 		LogicalMode mode = LogicalMode.OR;
-		for (String string : query) {
-			/* 現在の検索結果と次の検索結果をANDで統合する */
-			if (string.equals("and")) {
-				mode = LogicalMode.AND;
-				continue;
-			}
-			/* 現在の検索結果と次の検索結果をORで統合する */
-			if (string.equals("or")) {
-				mode = LogicalMode.OR;
-				continue;
-			}
-			/* 項目と条件の切り出し */
-			String[] tokens = string.split("=");
+		if ((logic != null) && (logic.equals("and")))
+			mode = LogicalMode.AND;
+		for (String key : query.keySet()) {
+			String value = query.get(key);
 			/* 問い合わせ */
-			ArrayList<Integer> ret = search(tokens[0], tokens[1]);
-			/* 今までの検索結果との統合 */
-			if (mode == LogicalMode.AND)
-				list = and(list, ret);
-			else
-				list = or(list, ret);
+			ArrayList<Integer> ret = search(key, value);
+			if (list == null)
+				list = ret;
+			else {
+				/* 今までの検索結果との統合 */
+				if (mode == LogicalMode.AND)
+					list = and(list, ret);
+				else
+					list = or(list, ret);
+			}
 		}
 		/* 検索結果から出力を得る */
 		for (int idx : list) {
