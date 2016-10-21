@@ -56,9 +56,12 @@ public class CSV2XML {
 
 		ArrayList retrieved = null;
 		Car car = new Car("car.csv");
-		Result result = car.analyze(query, logic);
-		for (String key : result.keySet())
-			System.out.println(key + " : " + result.get(key));
+		ArrayList<ArrayList<String>> result = car.analyze(query, logic);
+		for (ArrayList<String> list : result) {
+			for (String value : list)
+				System.out.print(value + " ");
+			System.out.println();
+		}
 		/*
 		try {
 			Document doc = xml.createDoc(retrieved);

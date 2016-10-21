@@ -56,9 +56,9 @@ public class Car extends ArrayList<HashMap<String, String>> {
 	}
 
 	/* 検索処理 */
-	public Result analyze(HashMap<String, String> query, String logic) {
+	public ArrayList<ArrayList<String>>  analyze(HashMap<String, String> query, String logic) {
 		int[] results = new int[evalLabel.length];
-		Result result = new Result();
+		ArrayList<ArrayList<String>> result = new ArrayList<ArrayList<String>>();
 
 		ArrayList<Integer> list = null;
 		LogicalMode mode = LogicalMode.OR;
@@ -80,18 +80,12 @@ public class Car extends ArrayList<HashMap<String, String>> {
 		}
 		/* 検索結果から出力を得る */
 		for (int idx : list) {
+			ArrayList<String> car = new ArrayList<String>();
 			HashMap<String, String> hashMap = get(idx);
-			String value = hashMap.get("eval");
-			for (int i = 0; i < evalLabel.length; i++) {
-				if (!value.equals(evalLabel[i]))
-					continue;
-				results[i]++;
-				break;
-			}
+			for (String key : keys)
+				car.add(hashMap.get(key));
+			result.add(car);
 		}
-
-		for (int i = 0; i < evalLabel.length; i++)
-			result.put(evalLabel[i], results[i]);
 
 		return result;
 	}

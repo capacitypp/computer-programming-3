@@ -1,4 +1,4 @@
-OBJS=CSV2XML.class Car.class
+OBJS=CSV2XML.class Car.class TextFileReader.class
 TARGET=163334_4.jar
 
 all : $(OBJS)
