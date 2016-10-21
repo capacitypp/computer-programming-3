@@ -8,16 +8,27 @@ import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.*;
 
 public class CSV2XML {
-	public Document createDoc(ArrayList retrieved) throws ParserConfigurationException {
+	static String keys[] = {"buying", "maint", "doors", "persons", "luggage", "safety", "eval"};
+	static String evalLabel[] = {"unacc", "acc", "good", "vgood"};
+	public Document createDoc(ArrayList<ArrayList<String>> retrieved) throws ParserConfigurationException {
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		DocumentBuilder db = dbf.newDocumentBuilder();
 		Document doc = db.newDocument();
 		Element root = doc.createElement("CarList");
 		doc.appendChild(root);
 
-		for (int i = 0; i < retrieved.size(); i++) {
-			Element car = doc.createElement("Car");
-
+		for (String label : evalLabel) {
+			Element group = doc.createElement("Group");
+			group.setAttribute("eval", label);
+			for (ArrayList<String> list : retrieved) {
+				if (!list.get(list.size() - 1).equals(label))
+					continue;
+				Element car = doc.createElement("Car");
+				for (int i = 0; i < list.size() - 1; i++)
+					car.setAttribute(keys[i], list.get(i));
+				group.appendChild(car);
+			}
+			root.appendChild(group);
 		}
 		return doc;
 	}
@@ -27,6 +38,9 @@ public class CSV2XML {
 			TransformerFactory tff = TransformerFactory.newInstance();
 			Transformer tf = tff.newTransformer();
 			tf.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+			tf.setOutputProperty(OutputKeys.INDENT, "yes");
+			tf.setOutputProperty(OutputKeys.METHOD, "xml");
+			tf.setOutputProperty("{http://xml.apache.org/xalan}indent-amount", "4");
 			try {
 				tf.transform(new DOMSource(doc), new StreamResult(fileName));
 			}
@@ -54,15 +68,8 @@ public class CSV2XML {
 			query.put(cmd2[0], cmd2[1]);
 		}
 
-		ArrayList retrieved = null;
 		Car car = new Car("car.csv");
-		ArrayList<ArrayList<String>> result = car.analyze(query, logic);
-		for (ArrayList<String> list : result) {
-			for (String value : list)
-				System.out.print(value + " ");
-			System.out.println();
-		}
-		/*
+		ArrayList<ArrayList<String>> retrieved = car.analyze(query, logic);
 		try {
 			Document doc = xml.createDoc(retrieved);
 			xml.saveXML("car.xml", doc);
@@ -70,7 +77,6 @@ public class CSV2XML {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
-		*/
 	}
 }
 
