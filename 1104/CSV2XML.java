@@ -1,3 +1,4 @@
+import java.io.*;
 import java.util.*;
 
 import javax.xml.parsers.*;
@@ -57,6 +58,25 @@ public class CSV2XML {
 		System.out.println(fileName + "に出力しました。");
 	}
 
+	public void saveJSON(String fileName, ArrayList<ArrayList<String>> retrieved) throws IOException, JSONException {
+		FileWriter fw = new FileWriter(new File(fileName));
+		JSONWriter writer = new JSONWriter(fw);
+		writer.object();
+		writer.key("key");
+		writer.array();
+		writer.object();
+		writer.key("key");
+		writer.value("value");
+		writer.endObject();
+		writer.object();
+		writer.key("key");
+		writer.value("value");
+		writer.endObject();
+		writer.endArray();
+		writer.endObject();
+		fw.flush();
+	}
+
 	public static void main(String[] args) {
 		CSV2XML xml = new CSV2XML();
 
@@ -75,6 +95,7 @@ public class CSV2XML {
 		try {
 			Document doc = xml.createDoc(retrieved);
 			xml.saveXML("car.xml", doc);
+			xml.saveJSON("car.json", retrieved);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
