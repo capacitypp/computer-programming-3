@@ -7,6 +7,8 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.*;
 
+import org.json.*;
+
 public class CSV2XML {
 	static String keys[] = {"buying", "maint", "doors", "persons", "luggage", "safety", "eval"};
 	static String evalLabel[] = {"unacc", "acc", "good", "vgood"};

@@ -4,7 +4,7 @@ TARGET=163334_4.jar
 all : $(OBJS)
 
 %.class : %.java
-	javac $<
+	javac -classpath ./:json.jar $<
 
 clean :
 	$(RM) *.class
