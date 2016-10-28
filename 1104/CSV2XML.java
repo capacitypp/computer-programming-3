@@ -62,38 +62,25 @@ public class CSV2XML {
 		FileWriter fw = new FileWriter(new File(fileName));
 		JSONWriter writer = new JSONWriter(fw);
 		writer.object();
-		writer.key("key");
-		writer.array();
-		writer.object();
-		writer.key("key");
-		writer.value("value");
-		writer.key("key2");
-		writer.value("value");
-		writer.endObject();
-		writer.object();
-		writer.key("key");
-		writer.value("value");
-		writer.key("key2");
-		writer.value("value");
-		writer.endObject();
-		writer.endArray();
-		writer.key("key2");
-		writer.array();
-		writer.object();
-		writer.key("key");
-		writer.value("value");
-		writer.key("key2");
-		writer.value("value");
-		writer.endObject();
-		writer.object();
-		writer.key("key");
-		writer.value("value");
-		writer.key("key2");
-		writer.value("value");
-		writer.endObject();
-		writer.endArray();
+		for (String label : evalLabel) {
+			writer.key(label);
+			writer.array();
+			for (ArrayList<String> list : retrieved) {
+				if (!list.get(list.size() - 1).equals(label))
+					continue;
+				writer.object();
+				for (int i = 0; i < list.size() - 1; i++) {
+					writer.key(keys[i]);
+					writer.value(list.get(i));
+				}
+				writer.endObject();
+			}
+			writer.endArray();
+		}
 		writer.endObject();
 		fw.flush();
+
+		System.out.println(fileName + "に出力しました。");
 	}
 
 	public static void main(String[] args) {
