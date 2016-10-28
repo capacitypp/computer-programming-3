@@ -55,10 +55,26 @@ public class Car extends ArrayList<HashMap<String, String>> {
 		return list;
 	}
 
-	/* 検索処理 */
-	public int[] analyze(String query[]) {
+	public int[] evaluate(ArrayList<Integer> list) {
 		int[] results = new int[evalLabel.length];
 
+		/* 検索結果から出力を得る */
+		for (int idx : list) {
+			HashMap<String, String> hashMap = get(idx);
+			String value = hashMap.get("eval");
+			for (int i = 0; i < evalLabel.length; i++) {
+				if (!value.equals(evalLabel[i]))
+					continue;
+				results[i]++;
+				break;
+			}
+		}
+
+		return results;
+	}
+
+	/* 検索処理 */
+	public ArrayList<Integer> analyze(String query[]) {
 		ArrayList<Integer> list = new ArrayList<Integer>();
 		/* コードの簡略化のため、初めはORとする */
 		LogicalMode mode = LogicalMode.OR;
@@ -83,26 +99,8 @@ public class Car extends ArrayList<HashMap<String, String>> {
 			else
 				list = or(list, ret);
 		}
-		/* 検索結果から出力を得る */
-		for (int idx : list) {
-			HashMap<String, String> hashMap = get(idx);
-			String value = hashMap.get("eval");
-			for (int i = 0; i < evalLabel.length; i++) {
-				if (!value.equals(evalLabel[i]))
-					continue;
-				results[i]++;
-				break;
-			}
-		}
 
-		return results;
-	}
-
-	public static void main(String[] args) {
-		Car car = new Car("car.csv");
-		int evals[] = car.analyze(args);
-		for (int i = 0; i < evals.length; i++)
-			System.out.printf("%s = %d,\n", evalLabel[i], evals[i]);
+		return list;
 	}
 }
 

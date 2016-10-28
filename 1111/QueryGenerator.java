@@ -40,6 +40,11 @@ public class QueryGenerator {
 		}
 		String[] query = queryArrayList.toArray(new String[0]);
 		for (String string : query)
-			System.out.println(string);
+			System.out.print(string + " ");
+		System.out.println();
+
+		Car car = new Car("car.csv");
+		ArrayList<Integer> carIndexes = car.analyze(query);
+		System.out.println("cars : " + carIndexes.size());
     }
 }
