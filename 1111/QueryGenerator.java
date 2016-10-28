@@ -27,6 +27,17 @@ public class QueryGenerator {
         condition.put(labels[numLabel] , values[numLabel][numValue]);
         return condition;
     }
+
+	public static void func(Car car, String[] query) {
+		ArrayList<Integer> carIndexes = car.analyze(query);
+		System.out.println("cars : " + carIndexes.size());
+
+		String[] evalLabel = {"unacc", "acc", "good", "vgood"};
+		int[] evals = car.evaluate(carIndexes);
+		for (int i = 0; i < evalLabel.length; i++)
+			System.out.println(evalLabel[i] + " : " + evals[i]);
+		car.delete(carIndexes);
+	}
     
     public static void main(String[] args) {
     	QueryGenerator queryGen = new QueryGenerator();
@@ -44,12 +55,8 @@ public class QueryGenerator {
 		System.out.println();
 
 		Car car = new Car("car.csv");
-		ArrayList<Integer> carIndexes = car.analyze(query);
-		System.out.println("cars : " + carIndexes.size());
 
-		String[] evalLabel = {"unacc", "acc", "good", "vgood"};
-		int[] evals = car.evaluate(carIndexes);
-		for (int i = 0; i < evalLabel.length; i++)
-			System.out.println(evalLabel[i] + " : " + evals[i]);
+		func(car, query);
+		func(car, query);
     }
 }

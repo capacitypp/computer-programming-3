@@ -73,6 +73,11 @@ public class Car extends ArrayList<HashMap<String, String>> {
 		return results;
 	}
 
+	public void delete(ArrayList<Integer> list) {
+		for (int i = 0; i < list.size(); i++)
+			remove(list.get(i) - i);
+	}
+
 	/* 検索処理 */
 	public ArrayList<Integer> analyze(String query[]) {
 		ArrayList<Integer> list = new ArrayList<Integer>();
