@@ -31,7 +31,15 @@ public class QueryGenerator {
     public static void main(String[] args) {
     	QueryGenerator queryGen = new QueryGenerator();
     	HashMap<String,String> condition = queryGen.getCondition ();
-    	for (Map.Entry<String, String> entry : condition.entrySet())
-    		System.out.println("Condition = " + entry.getKey() + " : " + entry.getValue());
+
+		ArrayList<String> queryArrayList = new ArrayList<String>();
+    	for (Map.Entry<String, String> entry : condition.entrySet()) {
+			if (queryArrayList.size() != 0)
+				queryArrayList.add("and");
+			queryArrayList.add(entry.getKey() + "=" + entry.getValue());
+		}
+		String[] query = queryArrayList.toArray(new String[0]);
+		for (String string : query)
+			System.out.println(string);
     }
 }
