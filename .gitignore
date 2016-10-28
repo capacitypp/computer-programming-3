@@ -1,3 +1,5 @@
+1014/163334_1.jar
+1021/163334_2.jar
 1104/car.xml
 1104/car.json
 *.class
@@ -7,7 +9,7 @@
 .mtj.tmp/
 
 # Package Files #
-*.jar
+#*.jar
 *.war
 *.ear
 
