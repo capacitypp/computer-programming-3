@@ -158,7 +158,7 @@ public class GUI extends JFrame {
 				deg = degs[i];
 				g.fillArc(75, 50, 200, 200, offset, deg);
 				/* 各色の意味を文字列として表示する */
-				g.drawString(itemTitle[i], 10, 50 + 20 * i);
+				g.drawString(itemTitle[i] + " : " + result.get(itemTitle[i]), 10, 50 + 20 * i);
 				offset += deg;
 			}
 		}
