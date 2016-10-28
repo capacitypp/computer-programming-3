@@ -46,5 +46,10 @@ public class QueryGenerator {
 		Car car = new Car("car.csv");
 		ArrayList<Integer> carIndexes = car.analyze(query);
 		System.out.println("cars : " + carIndexes.size());
+
+		String[] evalLabel = {"unacc", "acc", "good", "vgood"};
+		int[] evals = car.evaluate(carIndexes);
+		for (int i = 0; i < evalLabel.length; i++)
+			System.out.println(evalLabel[i] + " : " + evals[i]);
     }
 }
