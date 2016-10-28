@@ -122,7 +122,7 @@ public class GUI extends JFrame {
 		add(arcG, BorderLayout.CENTER);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLocation(400, 200);
-		setSize(300, 300);
+		setSize(450, 450);
 		setVisible(true);
 
 	}
