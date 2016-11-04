@@ -110,10 +110,27 @@ public class Car extends ArrayList<HashMap<String, String>> {
 		return list;
 	}
 
+	private ArrayList<Integer> analyze_() {
+		ArrayList<Integer> list = new ArrayList<Integer>();
+		for (int i = 0; i < size(); i++)
+			list.add(i);
+		return list;
+	}
+
 	public int[] analyze(String query[]) throws InterruptedException {
 		lock.readLock();
 		try {
 			return evaluate(analyze_(query));
+		}
+		finally {
+			lock.readUnlock();
+		}
+	}
+
+	public int[] analyze() throws InterruptedException {
+		lock.readLock();
+		try {
+			return evaluate(analyze_());
 		}
 		finally {
 			lock.readUnlock();
