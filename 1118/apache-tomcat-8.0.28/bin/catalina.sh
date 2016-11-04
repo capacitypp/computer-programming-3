@@ -1,5 +1,11 @@
 #!/bin/sh
 
+BINPATH=`pwd`
+APACHEPATH=${BINPATH%/*}
+echo "Apache Path : ${APACHEPATH}"
+COMMAND="export CATALINA_HOME=${APACHEPATH}"
+$COMMAND
+
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
