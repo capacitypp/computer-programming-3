@@ -8,6 +8,8 @@ public class Car extends ArrayList<HashMap<String, String>> {
 	/* 問い合わせにおける、論理演算の種類 */
 	enum  LogicalMode {AND, OR};
 
+	private final ReadWriteLock lock = new ReadWriteLock();
+
 	/* 与えられたファイル名のファイルからデータを読み込み、HashMapを生成する */
 	public Car(String fileName) {
 		TextFileReader textFileReader = new TextFileReader(fileName);
@@ -108,12 +110,24 @@ public class Car extends ArrayList<HashMap<String, String>> {
 		return list;
 	}
 
-	public int[] analyze(String query[]) {
-		return evaluate(analyze_(query));
+	public int[] analyze(String query[]) throws InterruptedException {
+		lock.readLock();
+		try {
+			return evaluate(analyze_(query));
+		}
+		finally {
+			lock.readUnlock();
+		}
 	}
 
-	public void delete(String query[]) {
-		delete(analyze_(query));
+	public void delete(String query[]) throws InterruptedException {
+		lock.writeLock();
+		try {
+			delete(analyze_(query));
+		}
+		finally {
+			lock.writeUnlock();
+		}
 	}
 }
 
