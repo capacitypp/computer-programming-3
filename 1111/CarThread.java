@@ -1,9 +1,9 @@
 import java.util.*;
 
 public class CarThread extends Thread {
-	private int id;
+	private int id;		/* スレッド番号 */
 	private Car car;
-	private int count;
+	private int count;	/* 削除を実行した回数 */
 
 	public CarThread(int id, Car car) {
 		this.id = id;
@@ -11,6 +11,7 @@ public class CarThread extends Thread {
 		count = 0;
 	}
 
+	/* 車の平均得点を計算する */
 	public double score(int[] evals) {
 		int scoreSum = 0;
 		int sum = 0;
@@ -18,11 +19,13 @@ public class CarThread extends Thread {
 			scoreSum += i * evals[i];
 			sum += evals[i];
 		}
+		/* 検索条件に該当する車種が存在しなかった場合 */
 		if (sum == 0)
 			sum = 1;
 		return (double)scoreSum / sum;
 	}
 
+	/* Querygeneratorで条件を生成し、Carの引数として渡せる形式に変換する */
 	public String[] getQuery() {
 		QueryGenerator queryGen = new QueryGenerator();
     	HashMap<String,String> condition = queryGen.getCondition ();
@@ -52,6 +55,7 @@ public class CarThread extends Thread {
 					System.out.println("Thread-" + id + " will delete data !");
 					car.delete(query);
 					count++;
+					/* 条件なしでの検索(全車種がヒットする) */
 					evals = car.analyze();
 					for (int i = 0; i < evalLabel.length; i++)
 						System.out.print(evalLabel[i] + " = " + evals[i] + ", ");
