@@ -1,4 +1,4 @@
-OBJS=Car.class TextFileReader.class QueryGenerator.class ReadWriteLock.class
+OBJS=Car.class TextFileReader.class CarThread.class QueryGenerator.class ReadWriteLock.class
 TARGET=163334_5.jar
 
 all : $(OBJS)

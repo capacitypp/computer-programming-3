@@ -1,0 +1,75 @@
+import java.util.*;
+
+public class CarThread extends Thread {
+	private int id;
+	private Car car;
+	private int count;
+
+	public CarThread(int id, Car car) {
+		this.id = id;
+		this.car = car;
+		count = 0;
+	}
+
+	public double score(int[] evals) {
+		int scoreSum = 0;
+		int sum = 0;
+		for (int i = 0; i < evals.length; i++) {
+			scoreSum += i * evals[i];
+			sum += evals[i];
+		}
+		if (sum == 0)
+			sum = 1;
+		return (double)scoreSum / sum;
+	}
+
+	public String[] getQuery() {
+		QueryGenerator queryGen = new QueryGenerator();
+    	HashMap<String,String> condition = queryGen.getCondition ();
+
+		ArrayList<String> queryArrayList = new ArrayList<String>();
+    	for (Map.Entry<String, String> entry : condition.entrySet()) {
+			if (queryArrayList.size() != 0)
+				queryArrayList.add("and");
+			queryArrayList.add(entry.getKey() + "=" + entry.getValue());
+		}
+		return queryArrayList.toArray(new String[0]);
+	}
+
+	public void run() {
+		try {
+			while (count < 3) {
+				String[] evalLabel = {"unacc", "acc", "good", "vgood"};
+				String[] query = getQuery();
+				int[] evals = car.analyze(query);
+				double s = score(evals);
+				if (s <= 0.5) {
+					int sum = 0;
+					for (int i = 0; i < evals.length; i++)
+						sum += evals[i];
+					if (sum == 0)
+						continue;
+					System.out.println("Thread-" + id + " will delete data !");
+					car.delete(query);
+					count++;
+					evals = car.analyze();
+					for (int i = 0; i < evalLabel.length; i++)
+						System.out.print(evalLabel[i] + " = " + evals[i] + ", ");
+					System.out.println();
+				}
+				Thread.sleep(1000);
+			}
+			System.out.println("Thread-" + id + " has finished ...");
+		}
+		catch (InterruptedException e) {
+
+		}
+	}
+    
+    public static void main(String[] args) {
+		Car car = new Car("car.csv");
+		for (int i = 1; i <= 5; i++)
+			new CarThread(i, car).start();
+    }
+}
+
