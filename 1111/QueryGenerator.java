@@ -29,14 +29,12 @@ public class QueryGenerator {
     }
 
 	public static void func(Car car, String[] query) {
-		ArrayList<Integer> carIndexes = car.analyze(query);
-		System.out.println("cars : " + carIndexes.size());
 
 		String[] evalLabel = {"unacc", "acc", "good", "vgood"};
-		int[] evals = car.evaluate(carIndexes);
+		int[] evals = car.analyze(query);
 		for (int i = 0; i < evalLabel.length; i++)
 			System.out.println(evalLabel[i] + " : " + evals[i]);
-		car.delete(carIndexes);
+		car.delete(query);
 	}
     
     public static void main(String[] args) {

@@ -55,7 +55,7 @@ public class Car extends ArrayList<HashMap<String, String>> {
 		return list;
 	}
 
-	public int[] evaluate(ArrayList<Integer> list) {
+	private int[] evaluate(ArrayList<Integer> list) {
 		int[] results = new int[evalLabel.length];
 
 		/* 検索結果から出力を得る */
@@ -73,13 +73,13 @@ public class Car extends ArrayList<HashMap<String, String>> {
 		return results;
 	}
 
-	public void delete(ArrayList<Integer> list) {
+	private void delete(ArrayList<Integer> list) {
 		for (int i = 0; i < list.size(); i++)
 			remove(list.get(i) - i);
 	}
 
 	/* 検索処理 */
-	public ArrayList<Integer> analyze(String query[]) {
+	private ArrayList<Integer> analyze_(String query[]) {
 		ArrayList<Integer> list = new ArrayList<Integer>();
 		/* コードの簡略化のため、初めはORとする */
 		LogicalMode mode = LogicalMode.OR;
@@ -106,6 +106,14 @@ public class Car extends ArrayList<HashMap<String, String>> {
 		}
 
 		return list;
+	}
+
+	public int[] analyze(String query[]) {
+		return evaluate(analyze_(query));
+	}
+
+	public void delete(String query[]) {
+		delete(analyze_(query));
 	}
 }
 
