@@ -6,6 +6,7 @@
 1104/car.json
 1111/163334_5.jar
 1118/apache-tomcat-8.0.28/logs
+1118/apache-tomcat-8.0.28/work
 *.class
 *.dat
 
