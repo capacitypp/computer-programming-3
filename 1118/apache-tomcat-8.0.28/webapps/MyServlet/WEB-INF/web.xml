@@ -21,4 +21,27 @@
 		<servlet-name>MyFormReceiver</servlet-name>
 		<url-pattern>/Form</url-pattern>
 	</servlet-mapping>
+	<servlet>
+		<servlet-name>MyReqAuthentification</servlet-name>
+		<servlet-class>ReqAuthentification</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>MyReqAuthentification</servlet-name>
+		<url-pattern>/ReqAuthentification</url-pattern>
+	</servlet-mapping>
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name>ReqAuthentification</web-resource-name>
+			<url-pattern>/ReqAuthentification</url-pattern>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>admin</role-name>
+		</auth-constraint>
+	</security-constraint>
+	<login-config>
+		<auth-method>BASIC</auth-method>
+	</login-config>
+	<security-role>
+		<role-name>admin</role-name>
+	</security-role>
 </web-app>
