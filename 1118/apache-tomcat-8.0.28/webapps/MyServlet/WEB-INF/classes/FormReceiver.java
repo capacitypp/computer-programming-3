@@ -12,9 +12,9 @@ public class FormReceiver extends HttpServlet {
 
 			PrintWriter pw = response.getWriter();
 			if (msgStr.length() != 0)
-				pw.println("<html><body><center>" + msgStr + "を受け取りました</center></body></html>");
+				pw.println("<center>" + msgStr + "を受け取りました</center>");
 			else
-				pw.println("<html><body><center><h2>エラー</h2>テキストを入力してください</center></body></html>");
+				pw.println("<center><h2>エラー</h2>テキストを入力してください</center>");
 		}
 		catch (Exception e) {
 			e.printStackTrace();

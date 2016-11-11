@@ -5,6 +5,14 @@
 	http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	<display-name>初めてのサーブレット</display-name>
 	<description>サーブレットを初めて実装するためのサンプルプログラム</description>
+	<filter>
+		<filter-name>MyFilter</filter-name>
+		<filter-class>SampleFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>MyFilter</filter-name>
+		<url-pattern>/Form</url-pattern>
+	</filter-mapping>
 	<servlet>
 		<servlet-name>MyFormReceiver</servlet-name>
 		<servlet-class>FormReceiver</servlet-class>
