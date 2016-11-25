@@ -341,6 +341,11 @@ java -Dfile.encoding=UTF8 -cp .:json.jar CSVtoXML
 注意:詳細は、-Xlint:uncheckedオプションを指定して再コンパイルしてください。
 </pre>
 が出力されても、問題無い。</p>
+<p>jar ファイル(CSVtoXML.jar)を生成して実行する際には、
+<pre class="CommandLine">
+java -Dfile.encoding=UTF8 -jar CSVtoXML.jar json.jar 
+</pre>
+となる。
 
 <div class="Exercise" id="Exercise">
 <h4>課題４．XML と JSON 形式での検索結果の出力</h4>

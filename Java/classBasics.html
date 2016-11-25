@@ -131,7 +131,7 @@ public class Rectangle {
   private int horizontalLength = 0; // 値を０で初期化
 
   public <b class="innerCaution">boolean</b> setVeticalLength (int vl) { 
-  	if (vl <= 0) {
+  	if (vl &lt;= 0) {
       System.err.println ("横の長さは正の値を入力して下さい！");
       return true;
     }
@@ -141,7 +141,7 @@ public class Rectangle {
     }
   }
   public <b class="innerCaution">boolean</b> setHorizontalLength (int hl) {
-    if (hl <= 0) {
+    if (hl &lt;= 0) {
       System.err.println ("縦の長さは正の値を入力して下さい！");
       return true;
     }
@@ -174,14 +174,6 @@ public class Rectangle {
 <li>代入の際に不正な値をチェックできる</li>
 <li>代入可能で参照不可の、または参照可能で代入不可のフィールドを作れる</li>
 </ul>
-
-<!--<div id="Exercise" class="Exercise">
-<h4>課題１．クラスの作成</h4>
-<p>
-円のクラス Circle を設計せよ。ただし、半径の値をフィールドとし、周囲長と面積を計算するメソッドを実装する。また、PI は 3.1415 とするか、java.lang.Math.PI を使用する。さらに、半径の値は実行時にキーボードで入力する様に作成する。
-</p>
-</div>
- -->
 
 <h1>継承と多態性の基礎概念</h1>
 <p>継承とは、既存のクラス定義を再利用してクラスを新たに作成する方法である。</p>
@@ -450,7 +442,18 @@ public class NoDigitConverter  extends Converter {
 
 <ul class="Point">
 <li>スーパークラスを継承する際には extends [スーパークラス名] をクラス名の後に記述する</li>
-<li>Ｃ＋＋ではキーワード virtual によって明示的に仮想関数を構築していたが、Java ではデフォルトで仮想関数として扱われるので virtual は指定しない</li>
+<li>継承元のスーパークラスのフィールドやメソッドを参照するために、super という予約語が接頭辞として用いられる</li>
+<li>Ｃ＋＋ではキーワード virtual によって明示的に仮想関数を構築していたが、Java のメソッドではデフォルトで仮想関数として扱われるので virtual は指定しない</li>
+<ul>
+<li>すなわち、Java のメソッドは自動的にポリモーフィズム（多態性）が付与される</li>    
+</ul>
+<li>継承先で同名のフィールド変数を宣言（上書き）した場合は、メソッドの様なポリモーフィズムが付与されない
+<ul>
+<li>フィールドとメソッドは、継承先で同名で上書きした際にポリモーフィズムに関して異なる挙動となるので、フィールドのオーバーライドは推奨されない</li>
+<li>
+静的 (static) なメソッドも、継承先で上書きした際にポリモーフィズムが付与されない    
+</li>
+</ul>
 </ul>
 
 <h3>スーパークラスのインタフェース化</h3>
@@ -539,7 +542,10 @@ public class DoublingConverter extends AbstractConverter {
 <ul class="Point">
 <li>クラス名の前に abstract を付ける事により抽象クラスを宣言できる</li>
 <li>メソッド名の前に abstract を付ける事により、内容が記述されない抽象メソッドを宣言できる</li>
-<li>抽象クラスは抽象メソッドを含む</li>
+<li>抽象メソッドを含むクラスは、必ず抽象クラスとして宣言する必要がある</li>
+<ul>
+<li>ただし、抽象メソッドを含まないクラスを、抽象クラスとして宣言することもできる</li>
+</ul>
 <li>抽象クラスから直接的にオブジェクトは生成できないので、その実体化には抽象メソッドを実装するサブクラスが必要となる</li>
 </ul>
 

@@ -40,7 +40,7 @@ Socket 通信が TCP 層でのデータ送受信であるのと比較して、Se
 <li>ブラウザを立ち上げ、URLの入力欄に http://localhost:8080/ を入力する<span class="innerCaution">（実際には、webapps/ROOT フォルダの下にある index.html が呼び出される）</span></li>
 <li>
 以下の表示：<br />
-<img width="500" src="./image/tomcat.jpg" />
+<img width="500" src="./image/tomcat.jpg" /><br>
 が出力されたら、サーブレットを起動する環境が作成されている</li>
 </li>
 <li><b class="innerCaution">上記の画面が表示されなかった場合にはリブート（./shutdown.sh を実行してから再度./startup.sh を実行）してみる。</b></li>
@@ -48,7 +48,7 @@ Socket 通信が TCP 層でのデータ送受信であるのと比較して、Se
 
 </ol>
 <p class="innerCaution">
-Tomcat のプログラムは、Web クライアントからのリクエストを待ち受けて Web ページを送信する、Web サーバーである。
+Tomcat は、Web サーバ（Web クライアントからのリクエストを待ち受けて Web ページを送信する）を構築するためのクラスライブラリである。
 </p>
 
 <h3>捕捉：任意の場所で Tomcat を解凍する場合</h3>
@@ -74,9 +74,9 @@ echo $CATALINA_HOME
 <h3>Step 1. サブディレクトリの作成</h3>
 <p>
 apache-tomcat-8.0.28.zip を解凍すると同名のフォルダが作成されるが、サーブレットを作成して配備するディレクトリ（フォルダ）があらかじめ決められており、
-下図で示される様に<b class="innerCaution">webapps ディレクトリの下に、新規に作成するサーブレットプログラム用のディレクトリを作成</b>する（名称は任意に設定できる）。
+下図で示される様に<b class="innerCaution">webapps ディレクトリの下に、新規に作成するサーブレットプログラム用のディレクトリを作成</b>する（名称は任意に設定できる）。<br>
 <img src="./image/servlet.jpg" width="600px"/><br/>
-　　　　<b>Tomcat 開発環境のディレクトリ構成</b><br />
+　　　　　　　　　　<b>Tomcat 開発環境のディレクトリ構成</b><br><br>
 この図に示されている様に、<b class="innerCaution">作成したディレクトリの下に WEB-INF と名付けられるディレクトリと、さらにその下に classes と名付けられるディレクトリを作成</b>する。</p>
 <p>デフォルトで作成されている ROOT フォルダの内容を参照する（ただし、classesフォルダは作成されていない）。</p>
 
@@ -365,12 +365,10 @@ public class SampleFilter implements Filter {
          &lt;role-name&gt;admin&lt;/role-name&gt; &lt;!-- 認証を許可する名前 --&gt;
       &lt;/auth-constraint&gt; 
    &lt;/security-constraint&gt; 
+   
    &lt;login-config&gt; 
       &lt;auth-method&gt;BASIC&lt;/auth-method&gt; &lt;!-- 認証方法--&gt;
    &lt;/login-config&gt; 
-   &lt;security-role&gt; 
-      &lt;role-name&gt;admin&lt;/role-name&gt;  &lt;!-- 認証を許可する名前 --&gt;
-   &lt;/security-role&gt;
 ...
 &lt;/web-app&gt;
 </pre>
@@ -478,14 +476,14 @@ public class <span class="innerCaution">ReqAuthentification</span> extends HttpS
 <p>
 <a href="./framework.html#Exercise">課題２</a>で作成したクラスで car.csv を読み込み、２個の検索条件と論理条件（AND または OR）を HTML のフォームで指定して、その検索結果を一覧表の形式（できれば、table タグ等を用いる）で表示する機能を実装する（ただし、JSP を用いて開発しても良い）。<br />
 
-<p class="Caution">今回の課題は、自席の計算機でプログラムを実際に動作させる事で課題提出とする（ただし、ソースプログラム（*.java）のみを Moodle で提出する）。</p>
+<p class="Caution">今回の課題は、自席の計算機でプログラムを実際に動作させる事で課題提出とする。</p>
 <font size="+2">
 <a href="car.html">HTMLフォームの実装例</a>
 </font>
 <br><br>
 <p>
     <b>【オプション：時間に余裕がある人は挑戦しよう！】</b><br />
-サーブレット（または、jsp）を用いたWebアプリケーションを開発する。テーマは機能は自由に設定する。優秀と認められた作品は、最終回の講義でデモンストレーションをお願いすることがある。<b class="innerCaution">この自由課題に挑戦した人は、上記課題の提出は免除される。</b>提出は同様に、自席の計算機でプログラムを実際に動作させ、ソースコードのみを Moodle で提出する。
+サーブレット（または、jsp）を用いたWebアプリケーションを開発する。テーマは機能は自由に設定する。優秀と認められた作品は、最終回の講義でデモンストレーションをお願いすることがある。<b class="innerCaution">この自由課題に挑戦した人は、上記課題の提出は免除される。</b>提出は同様に、自席の計算機でプログラムを実際に動作させる。
 </div>
 <br />
 

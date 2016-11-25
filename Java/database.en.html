@@ -254,15 +254,15 @@ Manipulation of XML nodes and input/output of documents differ for each package.
 XMLはWebアプリケーションで普及したデータ記述形式であるが、XMLはデータの記述を属性とテキストノードに分けて使う必要があり、
 タグに基づく記述は必要とされるテキスト量が多い。これに対して、JSON（JavaScript Object Notation）と呼ばれるデータ形式は、
 その名の通り JavaScript のオブジェクト表記構文のサブセットであり、XML と比較すると簡潔にデータ構造を表現できるという利点がある。</p>
-<p>JSONは、以下の２種類の構造から構成される
+<p>JSON consists of the following two kinds of structures:
 <ul>
-<li>キーと値の対で構成されるデータ構造。{ キー : 値 } の形式 <br />
-Java では Map フレームワークに相当し、レコード、辞書、ハッシュテーブル、キー付リスト、連想配列等に利用可能</li>
+<li>Pair of key and value in a same manner of Map framework, denoted as <pre>{key : value}</pre>, by which data structures such as record, dictionary, hash table, keyed-list, and associative array can be implemented</li>
 <li>
-順序付きリスト。[ 要素１, 要素２，... 要素N ] の形式 <br/>
-Java の Collention フレームワークに相当し、配列、ベクトル、リスト、数列等に利用可能</li>
+Ordered list, denoted as <pre>[component_1, component_2, ..., component_N]</pre> 
+<br/>
+where this data structure corresponds to Collection framework such as array, vector, list, and sequence</li>
 </ul>
-例えば、上記のXML出力は下記のプログラムによって、以下の様に構成される<b class="innerCaution">（ただし、実際には改行やインデントは含まれない）</b>。
+The above XML output, for example, is represented by
 <pre>
  {"車リスト":
      [
@@ -272,8 +272,9 @@ Java の Collention フレームワークに相当し、配列、ベクトル、
      ]
  }
 </pre>
+where actual format has no indentations and new lines.
 
-<u>CSV ファイルを json 形式に変換してファイル出力するコーディング例</u>
+<u>Sample code that converts CSV file into JSON format and write the textfile of the JSON.</u>
 <pre class="SourceCode"><code>import java.io.*;
 import java.util.*;
 import org.json.*;
@@ -327,7 +328,7 @@ public class CSVtoJSON {
 }</code>
 </pre>
 
-<h4>注意点：</h4>
+<h4>Caution:</h4>
 <ul>
     <li>JSONをサポートするパッケージ <a href="./json.jar">（json.jar）はこちらから</a>ダウンロードする。</li>
     <li>JSONの記述様式に関しては、<a href="http://www.json.org/">こちらを参考に</a>する。</li>
